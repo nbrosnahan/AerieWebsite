@@ -2,7 +2,7 @@
 title: "I got tired of changing batteries"
 date: 2026-04-13T15:07:25-07:00
 lastmod: 2026-04-13T15:28:00-07:00
-description: "I have a Schlage Encode Plus Smart Wi-Fi Lock for Front Door. It’s a very usable door lock with many modern features. It takes a small battery pack that contains 4 AA batteries. This is fine. Unfortunately, the failure mode"
+description: "My Schlage smart lock runs on AA batteries with an unpleasant failure mode. So I rewired it to line power with a UPS and stopped changing batteries for good."
 tags: ["battery", "DIY", "door lock", "home automation", "Schlage", "UPS"]
 categories: ["IoT", "Tech"]
 draft: false

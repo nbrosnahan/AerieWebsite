@@ -2,7 +2,7 @@
 title: "Ravenswatch"
 date: 2025-04-02T15:10:55-07:00
 lastmod: 2025-04-02T15:10:56-07:00
-description: "I don’t play a huge amount of video games, but I have to really recommend this one. Ravenswatch is a rogue-like game with 9 different characters you can play (currently) with up to 4 people. It’s highly social and engaging."
+description: "Ravenswatch is a rogue-like with nine very different characters and up to four players. Hard in the right way, and it keeps my gaming group coming back."
 tags: ["ravenswatch"]
 categories: ["Gaming"]
 draft: false

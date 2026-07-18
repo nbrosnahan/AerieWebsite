@@ -6,8 +6,9 @@
       <div class="post-meta">
         {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>{{ end }}
         {{ with .Params.tags }}
+        {{ $terms := $.GetTerms "tags" }}
         <div class="tags">
-          {{ range . }}<a href="{{ "tags/" | relURL }}{{ . | urlize }}/" class="tag">{{ . }}</a>{{ end }}
+          {{ range $i, $tag := . }}<a href="{{ (index $terms $i).RelPermalink }}" class="tag">{{ $tag }}</a>{{ end }}
         </div>
         {{ end }}
       </div>

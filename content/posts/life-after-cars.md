@@ -2,7 +2,7 @@
 title: "Life After Cars"
 date: 2025-10-29T09:38:56-07:00
 lastmod: 2025-10-29T09:39:57-07:00
-description: "After a long wait, my copy of Life After Cars: Freeing Ourselves from the Tyranny of the Automobile arrived last week. I tore through it, mostly in a frenzy of confirmation bias, but it is a good consolidation of research-backed"
+description: "Notes on Life After Cars — a well-organized, research-backed account of the damage done by the rise of the automobile. Worth reading, anti-car or not."
 tags: ["cycling", "driving", "safety", "transportation"]
 categories: ["Advocacy"]
 draft: false
