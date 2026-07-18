@@ -4,14 +4,6 @@ baseURL = "https://nbrosnahan.github.io/AerieWebsite/"
 locale = "en-US"
 title = "The Aerie"
 
-# Tag names are authored lowercase (matching the WordPress originals, e.g.
-# "svbc", "door lock") and must render exactly as authored. Hugo's default
-# capitalizeListTitles = true title-cases them ("Svbc", "Door Lock"),
-# breaking parity with the live site. Disabling it also affects other
-# auto-generated section titles (see content/*/_index.md for the explicit
-# `title:` overrides that keep those correct).
-capitalizeListTitles = false
-
 [params]
   tagline = "The stairs are a FEATURE"
   description = "A personal blog from San Francisco: cycling, transit, and housing advocacy, side projects, and photos from the city and beyond."
@@ -19,13 +11,6 @@ capitalizeListTitles = false
 [taxonomies]
   tag = "tags"
   category = "categories"
-
-[permalinks]
-  posts = "/:year/:month/:day/:slug/"
-
-[permalinks.term]
-  tags = "/tag/:slug/"
-  categories = "/category/:slug/"
 
 [pagination]
   pagerSize = 20

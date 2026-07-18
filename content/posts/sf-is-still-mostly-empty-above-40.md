@@ -3,10 +3,9 @@ title: "SF is still mostly empty above 40′"
 date: 2025-04-05T08:50:56-07:00
 lastmod: 2025-04-05T08:51:46-07:00
 description: "A San Francisco Chronicle piece on the city’s housing rezoning plan"
-tags: ["housing", "SF"]
+tags: ["Housing", "SF"]
 categories: ["Advocacy"]
 draft: false
-slug: "sf-is-still-mostly-empty-above-40"
 ---
 Yes.  Do this.  Encourage building more housing in SF.
 

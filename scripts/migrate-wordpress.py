@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 """Migrate WordPress content from brosnahan.org into this Hugo site.
 
+HISTORICAL -- DO NOT RE-RUN.
+
+One-time WordPress->Hugo migration, completed 2026-07-18. This script
+emits WordPress-era conventions (explicit slug: fields, flat
+static/images/ paths, excerpt-derived descriptions) that the site has
+since moved away from. Re-running it against the current tree would
+reintroduce them and overwrite hand-written descriptions.
+Kept for the record only.
+
 Stdlib only (urllib/html/re/json) -- no third-party dependencies.
 
 Pulls posts, the "who-am-i" page, categories, tags, and media from the

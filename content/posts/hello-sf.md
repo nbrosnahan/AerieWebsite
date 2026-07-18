@@ -6,7 +6,6 @@ description: "After 27 years in Sunnyvale, Anne and I are downsizing and moving 
 tags: []
 categories: ["Uncategorized"]
 draft: false
-slug: "hello-sf"
 ---
 Who starts a blog in 2025? Well, I do, I guess.
 

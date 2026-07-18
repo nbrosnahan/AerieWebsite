@@ -51,3 +51,30 @@
 - **Reversed, later in the day:** the owner asked for `uncategorized` restored, temporarily, preferring URL parity with the live site (`/category/uncategorized/` stays live) over dropping a WordPress default placeholder. Implemented as a single-lever, trivially-reversible change: `hello-sf` and `what-topics` now carry `categories: ["Uncategorized"]`, and `scripts/migrate-wordpress.py`'s `DROP_CATEGORY_SLUGS` constant is empty by default (was `{"uncategorized"}`) so a future re-run doesn't silently diverge from what's on disk.
 - Outstanding for a future session: hand-writing real post `description:` values (current ones are WordPress's truncated 55-word auto-excerpts feeding `<meta name="description">`), and the DNS cutover itself (still pending per the prior session's entry).
 - All 14 posts' `description:` values were hand-rewritten in this session, closing the item above: each is kept under 160 characters, ends on a complete sentence, and contains no bare URLs. The rewrite also fixed two source-level defects surfaced along the way: `svbcs-2025-el-camino-real-ride`'s WordPress excerpt read "El Camino RealRide" because the excerpt generator joined text across a hard line break in the body, and `sf-is-still-mostly-empty-above-40`'s description was previously a bare truncated URL.
+
+## 2026-07-18 — Drop WordPress-era conventions for Hugo defaults
+
+**Goal:** Strip every WordPress-parity convention from the site and adopt Hugo defaults, accepting the resulting URL breakage. No post text, image, or hand-written description may be lost or altered in the process.
+
+**Done:**
+- `hugo.toml`: deleted the `[permalinks]` block (`/:year/:month/:day/:slug/`), the `[permalinks.term]` block (singular `/tag/` and `/category/`), and the `capitalizeListTitles = false` override with its explanatory comment. URLs are now Hugo defaults: `/posts/<slug>/`, `/tags/<slug>/`, `/categories/<slug>/`.
+- Removed the explicit `slug:` frontmatter field from all 14 posts. Default permalinks derive the slug from the filename, and every filename already equalled the desired slug, so all 14 post slugs are unchanged.
+- Normalized all 22 tag names to proper display form (`cycling` → `Cycling`, `svbc` → `SVBC`, `door lock` → `Door Lock`, `ecrr2025` → `ECRR2025`, …). Verified every normalized name urlizes to its previous slug, so no tag URL moved. Categories were already proper-cased and were left alone.
+- Converted the two image-bearing posts to page bundles: `cities-moving` (3 images) and `i-got-tired-of-changing-batteries` (5 images) became `content/posts/<slug>/index.md` with their images alongside, moved via `git mv`. Figure shortcodes rewritten from `src="/images/<file>"` to bundle-relative `src="<file>"`; captions and alt text untouched. `static/` no longer exists.
+- Removed `aliases: ["/who-am-i/"]` from `content/about.md`.
+- Marked `scripts/migrate-wordpress.py` HISTORICAL — DO NOT RE-RUN with a banner at the top of its module docstring. Its logic is otherwise unmodified.
+- Simplified `layouts/partials/header.html`'s Tags active-state check to the `tags/` prefix alone (the `tag/` branch existed only for the singular term URLs).
+- Rewrote `CLAUDE.md`'s Content Migration section: the URL-parity table is replaced by a Hugo-defaults URL table plus an explicit note that parity was abandoned and which old URLs now 404; the `slug:` warning is replaced by a statement that slugs come from filenames (so the trailing-punctuation hazard no longer exists) and that renaming the file is how to change a URL; the architecture table's `static/images/` row became a page-bundles row; the migration script row and the `--force`/`uncategorized` bullets now reflect the script being historical. Added a note that restoring the custom domain means recreating `static/` for `CNAME`.
+
+**Verification:**
+- `make preflight` passes (81 pages, 8 non-page files, 0 aliases, 0 static files).
+- No content lost: rendered body word counts are identical for all 14 posts against a build of `a70328c`, and a word-by-word comparison shows the *only* differences anywhere are the intended tag-label capitalizations. All 14 `description:` values are byte-identical (matching md5 over the full set).
+- All 22 tag slugs and 6 category slugs are unchanged; all 14 post slugs match their previous filenames.
+- Term page `<h1>`s render correctly at the default `capitalizeListTitles`: `SVBC`, `ECRR2025`, `Door Lock`, `AI`, `UPS`, `DIY`, `SF`, `IoT` all survive intact.
+- All 8 images present in a bundle and returning 200; `static/images/` gone with no image orphaned.
+- Crawled all 59 internal URLs from `/` on a root-baseURL server: zero 404s. `/who-am-i/`, `/2025/05/31/cities-moving/`, and `/tag/svbc/` correctly 404. Nav highlights on `/tags/` and `/tags/<slug>/` only.
+
+**Decisions:**
+- **Normalize taxonomy display names rather than keep `capitalizeListTitles = false`.** The override existed solely so lowercase WordPress-era tag names would render as authored. Authoring the names in display form instead removes the config dependency entirely and is strictly better presentation. This works because Hugo's title caser only uppercases each word's first rune and leaves the remainder alone, so acronyms like `SVBC` and `ECRR2025` are not mangled into `Svbc`. The tradeoff: new tags must now be authored in display form, since a lowercase tag will render lowercase.
+- **Archive the migration script rather than update or delete it.** It still documents exactly what was pulled from WordPress and how, which is worth keeping, but it now emits conventions the site has abandoned and would clobber hand-written descriptions. A banner is the cheapest durable guard; updating it to match the new conventions would be maintaining a script that must never run again.
+- **Drop the `/who-am-i/` alias** and accept the 404, consistent with abandoning parity everywhere else. Keeping one alias while dated post permalinks and singular term URLs all break would be inconsistent for negligible benefit.

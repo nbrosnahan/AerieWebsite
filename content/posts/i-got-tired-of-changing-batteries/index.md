@@ -3,18 +3,17 @@ title: "I got tired of changing batteries"
 date: 2026-04-13T15:07:25-07:00
 lastmod: 2026-04-13T15:28:00-07:00
 description: "Switching my Schlage smart lock to have a UPS"
-tags: ["battery", "DIY", "door lock", "home automation", "Schlage", "UPS"]
+tags: ["Battery", "DIY", "Door Lock", "Home Automation", "Schlage", "UPS"]
 categories: ["IoT", "Tech"]
 draft: false
-slug: "i-got-tired-of-changing-batteries"
 ---
 I have a [Schlage Encode Plus Smart Wi-Fi Lock for Front Door](https://www.amazon.com/dp/B09RS3W7M5?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1).
 
-{{< figure src="/images/schlage_doorlock.png" >}}
+{{< figure src="schlage_doorlock.png" >}}
 
 It’s a very usable door lock with many modern features. It takes a small battery pack that contains 4 AA batteries. This is fine.
 
-{{< figure src="/images/thisisfine.png" >}}
+{{< figure src="thisisfine.png" >}}
 
 Unfortunately, the failure mode for the batteries being dead is unpleasant.  So, obviously, the best thing to do is to constantly check and change out the batteries before things go wrong.
 
@@ -40,11 +39,11 @@ Plugged in the UPS to a wall socket and *Voilà!*
 
 Line power + UPS + USB-A to C adapter + USB-C extension cable + USB-C pigtail + McGuyvering ==> RESULT!!
 
-{{< figure src="/images/img_9163.jpg" caption="Wire loops around contacts (at the bottom of the battery pack cavity)" >}}
+{{< figure src="img_9163.jpg" caption="Wire loops around contacts (at the bottom of the battery pack cavity)" >}}
 
-{{< figure src="/images/img_9164.jpg" caption="Wire loops connected with wire nuts to USB-C pigtail" >}}
+{{< figure src="img_9164.jpg" caption="Wire loops connected with wire nuts to USB-C pigtail" >}}
 
-{{< figure src="/images/img_9165.jpg" caption="USB-C extension connected to UPS using USB-A (why!?!)" >}}
+{{< figure src="img_9165.jpg" caption="USB-C extension connected to UPS using USB-A (why!?!)" >}}
 
 For reasons that are unclear, I was unable to use the USB-C port on the UPS, so I just put in a C-to-A adapter and used the USB-A port instead.
 
