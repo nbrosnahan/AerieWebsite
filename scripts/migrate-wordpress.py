@@ -46,7 +46,17 @@ ABOUT_FILE = REPO_ROOT / "content" / "about.md"
 IMAGES_DIR = REPO_ROOT / "static" / "images"
 
 EXCLUDED_POST_SLUGS = {"__trashed"}
-DROPPED_CATEGORY_SLUGS = {"uncategorized"}
+
+# Category slugs to exclude from category_names (and therefore from every
+# migrated post's `categories:` frontmatter). Empty by default: the
+# `uncategorized` category (WordPress's default placeholder, id 1) was
+# temporarily RESTORED to preserve /category/uncategorized/ URL parity with
+# the live WordPress site -- see CLAUDE.md "Decisions made". To re-drop it
+# (accepting that /category/uncategorized/ will 404), set this back to
+# `{"uncategorized"}` and remove `"Uncategorized"` from the two affected
+# posts' `categories:` lists (content/posts/hello-sf.md,
+# content/posts/what-topics.md).
+DROP_CATEGORY_SLUGS: set[str] = set()  # was {"uncategorized"}
 
 
 # --------------------------------------------------------------------------
@@ -487,7 +497,7 @@ def main() -> int:
     tags = http_get_json_paginated(f"{API}/tags?per_page=100")
 
     category_names = {
-        c["id"]: html.unescape(c["name"]) for c in categories if c["slug"] not in DROPPED_CATEGORY_SLUGS
+        c["id"]: html.unescape(c["name"]) for c in categories if c["slug"] not in DROP_CATEGORY_SLUGS
     }
     tag_names = {t["id"]: html.unescape(t["name"]) for t in tags}
 

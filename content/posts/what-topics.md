@@ -4,7 +4,7 @@ date: 2025-04-01T11:29:14-07:00
 lastmod: 2025-04-01T11:53:44-07:00
 description: "If you’re wondering what sort of postings will happen here, so am I. I imagine it’ll consist mainly of things I’ve encountered in and around San Francisco as I explore with Anne. I’m sure there will also be a smattering"
 tags: []
-categories: []
+categories: ["Uncategorized"]
 draft: false
 slug: "what-topics"
 ---
