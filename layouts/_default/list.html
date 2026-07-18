@@ -9,7 +9,7 @@
       <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
       {{ with .Params.tags }}
       <div class="tags">
-        {{ range . }}<a href="{{ "/tags/" | relURL }}{{ . | urlize }}/" class="tag">{{ . }}</a>{{ end }}
+        {{ range . }}<a href="{{ "tags/" | relURL }}{{ . | urlize }}/" class="tag">{{ . }}</a>{{ end }}
       </div>
       {{ end }}
     </article>

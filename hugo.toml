@@ -1,4 +1,6 @@
-baseURL = "https://brosnahan.org/"
+# Published to a GitHub Pages project URL with a subpath. Revert to
+# "https://brosnahan.org/" at the DNS cutover.
+baseURL = "https://nbrosnahan.github.io/AerieWebsite/"
 locale = "en-US"
 title = "The Aerie"
 
