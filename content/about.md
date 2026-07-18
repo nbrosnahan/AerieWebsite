@@ -1,7 +1,6 @@
 ---
 title: "About"
 layout: "single"
-aliases: ["/who-am-i/"]
 ---
 
 Hiya!  I’m Nick Brosnahan.  I have other names, but those are the important two.

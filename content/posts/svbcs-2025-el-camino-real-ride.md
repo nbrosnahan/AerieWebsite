@@ -3,10 +3,9 @@ title: "SVBC’s 2025 El Camino Real Ride"
 date: 2025-04-05T08:20:40-07:00
 lastmod: 2025-04-05T08:37:01-07:00
 description: "Signups are open for Silicon Valley Bicycle Coalition’s 5th annual El Camino Real Ride"
-tags: ["cycling", "ecrr2025", "svbc"]
+tags: ["Cycling", "ECRR2025", "SVBC"]
 categories: ["Advocacy"]
 draft: false
-slug: "svbcs-2025-el-camino-real-ride"
 ---
 Signups are now OPEN for Silicon Valley Bicycle Coalition’s 5th Annual El Camino Real\
 Ride!
