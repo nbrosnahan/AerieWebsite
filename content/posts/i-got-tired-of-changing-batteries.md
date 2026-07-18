@@ -2,7 +2,7 @@
 title: "I got tired of changing batteries"
 date: 2026-04-13T15:07:25-07:00
 lastmod: 2026-04-13T15:28:00-07:00
-description: "My Schlage smart lock runs on AA batteries with an unpleasant failure mode. So I rewired it to line power with a UPS and stopped changing batteries for good."
+description: "Switching my Schlage smart lock to have a UPS"
 tags: ["battery", "DIY", "door lock", "home automation", "Schlage", "UPS"]
 categories: ["IoT", "Tech"]
 draft: false

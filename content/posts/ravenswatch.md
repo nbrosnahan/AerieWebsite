@@ -2,7 +2,7 @@
 title: "Ravenswatch"
 date: 2025-04-02T15:10:55-07:00
 lastmod: 2025-04-02T15:10:56-07:00
-description: "Ravenswatch is a rogue-like with nine very different characters and up to four players. Hard in the right way, and it keeps my gaming group coming back."
+description: "Ravenswatch is a rogue-like with nine very different characters and up to four players"
 tags: ["ravenswatch"]
 categories: ["Gaming"]
 draft: false

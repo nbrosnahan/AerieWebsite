@@ -2,6 +2,7 @@
 title: '{{ replace .File.ContentBaseName "-" " " | title }}'
 date: {{ .Date }}
 lastmod: {{ .Date }}
+# description: short fragment, no period, no URLs
 description: ""
 tags: []
 categories: []

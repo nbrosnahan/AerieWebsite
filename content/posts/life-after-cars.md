@@ -2,7 +2,7 @@
 title: "Life After Cars"
 date: 2025-10-29T09:38:56-07:00
 lastmod: 2025-10-29T09:39:57-07:00
-description: "Notes on Life After Cars — a well-organized, research-backed account of the damage done by the rise of the automobile. Worth reading, anti-car or not."
+description: "Notes on Life After Cars"
 tags: ["cycling", "driving", "safety", "transportation"]
 categories: ["Advocacy"]
 draft: false

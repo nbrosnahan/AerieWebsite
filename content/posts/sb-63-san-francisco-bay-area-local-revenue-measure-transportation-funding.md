@@ -2,7 +2,7 @@
 title: "SB 63 — San Francisco Bay area: local revenue measure: transportation funding."
 date: 2025-04-01T12:16:19-07:00
 lastmod: 2025-04-05T08:24:32-07:00
-description: "SB 63 would fund Bay Area transit with a half-cent sales tax, keeping Caltrain, BART, and Muni running. Good transit takes funding — and it helps drivers too."
+description: "SB 63 would fund Bay Area transit with a half-cent sales tax"
 tags: ["funding", "legislation"]
 categories: ["Advocacy"]
 draft: false

@@ -2,7 +2,7 @@
 title: "Cities Moving"
 date: 2025-05-31T13:06:23-07:00
 lastmod: 2025-05-31T13:06:23-07:00
-description: "citiesmoving.com compares how a city’s people actually get around — active mobility, public transit, and private cars. San Francisco has a lot of work to do."
+description: "San Francisco has a lot of work to do on transportation"
 tags: ["cycling", "driving", "public transit", "transportation"]
 categories: ["Advocacy"]
 draft: false

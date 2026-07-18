@@ -2,7 +2,7 @@
 title: "Oak Street Quick-Build Approved by SFMTA Board"
 date: 2025-04-05T08:35:24-07:00
 lastmod: 2025-04-05T08:36:35-07:00
-description: "SFMTA approved a protected bikeway on Oak Street, mirroring Fell Street — which saw a 38% drop in collisions and 50% drop in pedestrian collisions."
+description: "SFMTA approved a protected bikeway on Oak Street"
 tags: ["safety", "SF"]
 categories: ["Advocacy"]
 draft: false

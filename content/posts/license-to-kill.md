@@ -2,7 +2,7 @@
 title: "License to Kill"
 date: 2025-04-23T11:29:48-07:00
 lastmod: 2025-04-23T11:29:48-07:00
-description: "A CalMatters investigation into how the DMV keeps drivers on the road after repeated collisions, and even after deaths. Prepare to be angry."
+description: "The DMV keeps drivers on the road even after deaths"
 tags: ["driving", "safety"]
 categories: ["Advocacy"]
 draft: false

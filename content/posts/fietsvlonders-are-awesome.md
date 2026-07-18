@@ -2,7 +2,7 @@
 title: "Fietsvlonders are awesome!"
 date: 2025-05-31T09:07:19-07:00
 lastmod: 2025-05-31T09:10:50-07:00
-description: "A Dutch company builds bike parking platforms that fit in a single car parking space and hold 8–10x the bikes. San Francisco’s slow streets could use them."
+description: "A Dutch company builds bike parking platforms that fit in a single car parking space and hold 8–10x the bikes"
 tags: ["cycling"]
 categories: ["Advocacy"]
 draft: false

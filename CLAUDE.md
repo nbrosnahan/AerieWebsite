@@ -38,6 +38,14 @@ locally since drafts are rendered; the post stays out of the production
 build until `draft: true` is flipped to `false` in its frontmatter; deploying
 is a push to `main`.
 
+**Description convention:** every post's `description:` frontmatter is a
+single short fragment naming what the post is about — not a full sentence,
+no terminal period. Roughly 25–110 characters is the observed range across
+the site. No bare URLs, no markdown links, and no editorializing or verdict
+(state the topic, not what to think of it). For posts that are primarily a
+link plus commentary, describe *what's being linked* in words; the link
+itself belongs in the post body, where it's clickable and has context.
+
 Hugo version in CI: **0.164.0 extended**.
 
 ## Architecture
@@ -85,7 +93,7 @@ The WordPress→Hugo content migration from the live brosnahan.org site is compl
 - **Date archives** (`/YYYY/MM/`) are NOT preserved. Hugo has no built-in date-archive generation; `GroupByDate`/`GroupByPublishDate` group posts inside a template but don't emit pages at those URLs. Reproducing them would require a generated stub page per month with a `url:` frontmatter override, plus a new stub every future month — rejected as ongoing maintenance for URLs with negligible inbound links. These URLs will 404 after cutover.
 - **Excluded content:** the post at `/2025/04/01/__trashed/` was a WordPress deleted-post artifact and was NOT migrated. 14 posts migrated, not 15.
 - **`uncategorized` category retained (reversing an earlier decision)** — it was originally dropped as a WordPress default placeholder, not a real category, but the owner asked for it back: `/category/uncategorized/` returns HTTP 200 on the live WordPress site, and keeping the category preserves that URL's parity after the DNS cutover. Its two posts (`hello-sf`, `what-topics`) carry `categories: ["Uncategorized"]`. **This is considered temporary** — a future cleanup may drop it again, which would 404 that URL. The single lever for this is `DROP_CATEGORY_SLUGS` in `scripts/migrate-wordpress.py` (currently empty; the comment there documents exactly how to re-drop it and which files to touch).
-- **All 14 posts' `description:` values are hand-written**, not derived from WordPress's auto-excerpts. Each is kept under 160 characters (so search engines render it without truncation), ends on a complete sentence, and contains no bare URLs. These feed `<meta name="description">` via `layouts/_default/baseof.html`, so they're what search engines show today. **Durable warning:** re-running `scripts/migrate-wordpress.py` with `--force` regenerates descriptions from the WordPress excerpt and would **destroy** this hand-written text — the default no-flag run is safe (it skips files that already exist). This is the concrete reason the `--force` guard exists.
+- **All 14 posts' `description:` values are hand-written**, not derived from WordPress's auto-excerpts, and follow the description convention documented under Commands → Authoring loop above. **Durable warning:** re-running `scripts/migrate-wordpress.py` with `--force` regenerates descriptions from the WordPress excerpt and would **destroy** this hand-written text — the default no-flag run is safe (it skips files that already exist). This is the concrete reason the `--force` guard exists.
 
 ## Deployment
 
