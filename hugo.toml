@@ -1,10 +1,10 @@
-baseURL = "https://tumblingpotato.org/"
-languageCode = "en-us"
-title = "Tumbling Potato"
+baseURL = "https://brosnahan.org/"
+locale = "en-US"
+title = "The Aerie"
 
 [params]
-  tagline = "A stealth organization"
-  description = "Tumbling Potato — a stealth organization. Who can say what's going on?"
+  tagline = "The stairs are a feature"
+  description = "The Aerie — a personal blog at brosnahan.org."
 
 [taxonomies]
   tag = "tags"
