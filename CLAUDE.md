@@ -60,6 +60,25 @@ This is a minimal, no-theme Hugo site. All structure is hand-built in `layouts/`
 
 **CSS is inlined** — `baseof.html` uses `resources.Get "css/main.css" | minify` and emits it as a `<style>` block. There is no external stylesheet.
 
+## Content Migration
+
+The site is being migrated from a live WordPress 7.0.2 site at brosnahan.org: 15 published posts, 2 pages, 6 categories, 24 tags, 12 media items. WordPress's REST API (`/wp-json/wp/v2/`) is open and is the extraction path. Post bodies use only `<p>`, `<a>`, `<em>`, `<figure>`, `<figcaption>`, `<img>` — no galleries or embeds, so HTML→Markdown conversion is straightforward.
+
+**URL parity** (already configured in `hugo.toml` — do not change without understanding why):
+
+| Config | Effect |
+|--------|--------|
+| `[permalinks] posts = "/:year/:month/:day/:slug/"` | Matches WordPress's "Day and name" permalink structure |
+| `[permalinks.term]` maps `tags` → `/tag/:slug/`, `categories` → `/category/:slug/` | WordPress uses singular URL segments; the `[taxonomies]` block stays plural so frontmatter keeps `tags:`/`categories:` keys |
+| Alias on `content/about.md` | `/who-am-i/` → `/about/` |
+| `content/photography.md` | Preserves `/photography/` |
+
+**Decisions made:**
+- **Images** migrate to Hugo-idiomatic paths (e.g. `static/images/` or page bundles), not a preserved `static/wp-content/uploads/` tree. `<img src>` attributes get rewritten during conversion. Pull the ORIGINAL media files from the WordPress media library, not the resized/`.avif` derivatives WordPress generates.
+- **RSS** lands at Hugo's `/index.xml`, not WordPress's `/feed/` — that URL is not being preserved. Existing `/feed/` subscribers will stop receiving updates at the DNS cutover unless an alias is added later.
+- **Date archives** (`/YYYY/MM/`) are NOT preserved. Hugo has no built-in date-archive generation; `GroupByDate`/`GroupByPublishDate` group posts inside a template but don't emit pages at those URLs. Reproducing them would require a generated stub page per month with a `url:` frontmatter override, plus a new stub every future month — rejected as ongoing maintenance for URLs with negligible inbound links. These URLs will 404 after cutover.
+- **Excluded content:** the post at `/2025/04/01/__trashed/` is a WordPress deleted-post artifact and is NOT being migrated. 14 posts migrate, not 15.
+
 ## Deployment
 
 Push to `main` → GitHub Actions builds with Hugo and deploys to GitHub Pages. Workflow at `.github/workflows/deploy.yml`.
