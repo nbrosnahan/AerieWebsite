@@ -12,5 +12,12 @@ title = "The Aerie"
   tag = "tags"
   category = "categories"
 
+[permalinks]
+  posts = "/:year/:month/:day/:slug/"
+
+[permalinks.term]
+  tags = "/tag/:slug/"
+  categories = "/category/:slug/"
+
 [pagination]
   pagerSize = 20
