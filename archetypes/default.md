@@ -5,7 +5,7 @@ lastmod: {{ .Date }}
 description: ""
 tags: []
 categories: []
-draft: false
+draft: true
 # slug: ""
 # url: ""
 # aliases: []

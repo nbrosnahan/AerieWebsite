@@ -1,14 +1,23 @@
-baseURL = "https://tumblingpotato.org/"
-languageCode = "en-us"
-title = "Tumbling Potato"
+# Published to a GitHub Pages project URL with a subpath. Revert to
+# "https://brosnahan.org/" at the DNS cutover.
+baseURL = "https://nbrosnahan.github.io/AerieWebsite/"
+locale = "en-US"
+title = "The Aerie"
 
 [params]
-  tagline = "A stealth organization"
-  description = "Tumbling Potato — a stealth organization. Who can say what's going on?"
+  tagline = "The stairs are a FEATURE"
+  description = "A personal blog from San Francisco: cycling, transit, and housing advocacy, side projects, and photos from the city and beyond."
 
 [taxonomies]
   tag = "tags"
   category = "categories"
+
+[permalinks]
+  posts = "/:year/:month/:day/:slug/"
+
+[permalinks.term]
+  tags = "/tag/:slug/"
+  categories = "/category/:slug/"
 
 [pagination]
   pagerSize = 20

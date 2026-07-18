@@ -1,8 +1,5 @@
 ---
 title: "About"
 layout: "single"
+aliases: ["/who-am-i/"]
 ---
-
-Tumbling Potato is a stealth organization.
-
-More to come.

@@ -7,7 +7,7 @@
         {{ if not .Date.IsZero }}<time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>{{ end }}
         {{ with .Params.tags }}
         <div class="tags">
-          {{ range . }}<a href="{{ "/tags/" | relURL }}{{ . | urlize }}/" class="tag">{{ . }}</a>{{ end }}
+          {{ range . }}<a href="{{ "tags/" | relURL }}{{ . | urlize }}/" class="tag">{{ . }}</a>{{ end }}
         </div>
         {{ end }}
       </div>
@@ -15,6 +15,7 @@
     <div class="post-body">
       {{ .Content }}
     </div>
+    {{ if eq .Section "posts" }}
     <nav class="post-nav">
       {{ with .PrevInSection }}
         <a href="{{ .RelPermalink }}" class="post-nav-prev">← {{ .Title }}</a>
@@ -23,6 +24,7 @@
         <a href="{{ .RelPermalink }}" class="post-nav-next">{{ .Title }} →</a>
       {{ end }}
     </nav>
+    {{ end }}
   </article>
 </div>
 {{ end }}

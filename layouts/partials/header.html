@@ -1,11 +1,11 @@
 <header>
   <div class="site-header">
-    <a href="{{ "/" | relURL }}" class="site-title">{{ .Site.Title }}</a>
+    <a href="{{ site.Home.RelPermalink }}" class="site-title">{{ .Site.Title }}</a>
     <nav>
-      <a href="{{ "/" | relURL }}"{{ if .IsHome }} class="active"{{ end }}>Writing</a>
-      <a href="{{ "/about/" | relURL }}"{{ if eq .RelPermalink "/about/" }} class="active"{{ end }}>About</a>
-      <a href="{{ "/tags/" | relURL }}"{{ if strings.HasPrefix .RelPermalink "/tags/" }} class="active"{{ end }}>Tags</a>
-      <a href="{{ "/index.xml" | relURL }}" title="RSS feed">RSS</a>
+      <a href="{{ site.Home.RelPermalink }}"{{ if .IsHome }} class="active"{{ end }}>Writing</a>
+      <a href="{{ "about/" | relURL }}"{{ if eq .RelPermalink ("about/" | relURL) }} class="active"{{ end }}>About</a>
+      <a href="{{ "tags/" | relURL }}"{{ if strings.HasPrefix .RelPermalink ("tags/" | relURL) }} class="active"{{ end }}>Tags</a>
+      <a href="{{ "index.xml" | relURL }}" title="RSS feed">RSS</a>
     </nav>
   </div>
 </header>
