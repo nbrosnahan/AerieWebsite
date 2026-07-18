@@ -4,6 +4,7 @@
     <nav>
       <a href="{{ site.Home.RelPermalink }}"{{ if .IsHome }} class="active"{{ end }}>Writing</a>
       <a href="{{ "about/" | relURL }}"{{ if eq .RelPermalink ("about/" | relURL) }} class="active"{{ end }}>About</a>
+      <a href="{{ "photography/" | relURL }}"{{ if eq .RelPermalink ("photography/" | relURL) }} class="active"{{ end }}>Photography</a>
       <a href="{{ "tags/" | relURL }}"{{ if or (strings.HasPrefix .RelPermalink ("tags/" | relURL)) (strings.HasPrefix .RelPermalink ("tag/" | relURL)) }} class="active"{{ end }}>Tags</a>
       <a href="{{ "index.xml" | relURL }}" title="RSS feed">RSS</a>
     </nav>
