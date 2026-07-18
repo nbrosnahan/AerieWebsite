@@ -5,8 +5,8 @@ locale = "en-US"
 title = "The Aerie"
 
 [params]
-  tagline = "The stairs are a feature"
-  description = "The Aerie — a personal blog at brosnahan.org."
+  tagline = "The stairs are a FEATURE"
+  description = "A personal blog from San Francisco: cycling, transit, and housing advocacy, side projects, and photos from the city and beyond."
 
 [taxonomies]
   tag = "tags"
