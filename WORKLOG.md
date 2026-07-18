@@ -29,3 +29,25 @@
 - RSS stays at Hugo's `/index.xml` rather than reproducing WordPress's `/feed/`.
 - Date archives are dropped — Hugo has no config-level support, and per-month stub pages were judged not worth the perpetual maintenance for URLs with negligible inbound links.
 - The `__trashed` post is excluded from the migration (14 posts, not 15).
+
+## 2026-07-18 — WordPress→Hugo content migration
+
+**Goal:** Migrate the live brosnahan.org WordPress content (posts, the about page, images) into Hugo, per the URL-parity and content decisions recorded in the previous session.
+
+**Done:**
+- Wrote `scripts/migrate-wordpress.py` — stdlib-only, no third-party deps, idempotent/re-runnable. Fetches from the live WordPress REST API and writes `content/posts/<slug>.md`, `content/about.md` (body only), and `static/images/<basename>`.
+- Migrated 14 posts to `content/posts/<slug>.md`. `content/photography.md` was already migrated by hand in a prior session and was left untouched.
+- Migrated the body of WordPress page `who-am-i` (id 14) into `content/about.md`, preserving its existing frontmatter, including the load-bearing `aliases: ["/who-am-i/"]`.
+- Migrated 8 original images (full-res PNGs with alpha, JPEGs with intact iPhone EXIF — confirmed not the `.avif` derivatives) into `static/images/`.
+- Fixed two bugs the migration surfaced: a trailing-punctuation slug divergence (see Decisions) and adjacent `<em> </em>` + `<em>` spans in WordPress HTML that were converting to malformed markdown — the converter now merges adjacent `<em>` runs and lifts whitespace out of each span.
+- Verified: `make preflight` passes (79 pages); all 14 post URLs match the live WordPress `link` field exactly; all 22 in-use tags match `/tag/<slug>/`; `/who-am-i/` alias resolves to `/about/`; no `.avif`, `wp-content`, or raw HTML-entity leakage in `content/` or `public/`.
+- Updated `CLAUDE.md`'s Content Migration section from in-progress to completed-state, and added `scripts/migrate-wordpress.py` and `static/images/` to the architecture table.
+
+**Decisions:**
+- Every post's frontmatter now carries an explicit `slug:` pinned to the WordPress slug, not left to Hugo's title-derived fallback. Cause: the SB 63 post's title ends in a literal period, and Hugo's slug sanitizer (unlike WordPress's `sanitize_title()`) doesn't strip trailing punctuation, which silently broke URL parity for that post until `slug:` was added. Recorded as a durable note in `CLAUDE.md` since a future title edit could accidentally remove the field.
+- `superman-sneak-peek`'s YouTube iframe was converted to Hugo's built-in `{{< youtube >}}` shortcode (figures likewise use `{{< figure >}}`), avoiding the need for `markup.goldmark.renderer.unsafe`. This corrects a prior `CLAUDE.md` claim that the source content had "no embeds," which was wrong.
+- Images went to a flat `static/images/` rather than page bundles — only 3 posts carry images (8 total), so a flat tree was cheap and keeps `content/posts/` uniform.
+- `uncategorized` (a WordPress default placeholder) was dropped as a real category, with the owner's explicit sign-off that `/category/uncategorized/` will 404 after the DNS cutover.
+- **Reversed, later in the day:** the owner asked for `uncategorized` restored, temporarily, preferring URL parity with the live site (`/category/uncategorized/` stays live) over dropping a WordPress default placeholder. Implemented as a single-lever, trivially-reversible change: `hello-sf` and `what-topics` now carry `categories: ["Uncategorized"]`, and `scripts/migrate-wordpress.py`'s `DROP_CATEGORY_SLUGS` constant is empty by default (was `{"uncategorized"}`) so a future re-run doesn't silently diverge from what's on disk.
+- Outstanding for a future session: hand-writing real post `description:` values (current ones are WordPress's truncated 55-word auto-excerpts feeding `<meta name="description">`), and the DNS cutover itself (still pending per the prior session's entry).
+- All 14 posts' `description:` values were hand-rewritten in this session, closing the item above: each is kept under 160 characters, ends on a complete sentence, and contains no bare URLs. The rewrite also fixed two source-level defects surfaced along the way: `svbcs-2025-el-camino-real-ride`'s WordPress excerpt read "El Camino RealRide" because the excerpt generator joined text across a hard line break in the body, and `sf-is-still-mostly-empty-above-40`'s description was previously a bare truncated URL.

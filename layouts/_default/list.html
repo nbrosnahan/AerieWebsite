@@ -4,12 +4,14 @@
   {{ if .Pages }}
   <div class="post-list">
     {{ range .Pages.ByDate.Reverse }}
+    {{ $page := . }}
     <article class="post-item">
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time>
       <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
       {{ with .Params.tags }}
+      {{ $terms := $page.GetTerms "tags" }}
       <div class="tags">
-        {{ range . }}<a href="{{ "tags/" | relURL }}{{ . | urlize }}/" class="tag">{{ . }}</a>{{ end }}
+        {{ range $i, $tag := . }}<a href="{{ (index $terms $i).RelPermalink }}" class="tag">{{ $tag }}</a>{{ end }}
       </div>
       {{ end }}
     </article>
