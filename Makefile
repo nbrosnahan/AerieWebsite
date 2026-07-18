@@ -17,6 +17,13 @@ build-site: ## Production build (hugo --minify) into public/
 # -D includes drafts, so local preview intentionally differs from what
 # deploys: .github/workflows/deploy.yml runs plain `hugo --minify`, so
 # drafts stay unpublished on the live site.
+#
+# --baseURL http://localhost:1313/ overrides hugo.toml's production baseURL,
+# which carries a "/AerieWebsite/" subpath (GitHub Pages project URL). Without
+# this override, `hugo server` inherits that subpath and serves everything
+# under http://localhost:1313/AerieWebsite/, so the polling loop and Safari
+# below would be pointed at a 404. The explicit localhost root keeps working
+# unchanged after the DNS cutover to brosnahan.org removes the subpath.
 run-site: ## Serve with drafts + live navigation, open in Safari once ready
 	@echo "Starting Hugo server (drafts enabled) at http://localhost:1313/ ..."
 	@( \
@@ -29,7 +36,7 @@ run-site: ## Serve with drafts + live navigation, open in Safari once ready
 		done; \
 		echo "Warning: server did not respond after 15 attempts; not opening Safari." >&2 \
 	) & \
-	hugo server -D --navigateToChanged
+	hugo server -D --navigateToChanged --baseURL http://localhost:1313/
 
 new-post: ## Create a new post from the archetype (TITLE=<slug> required)
 	@if [ -z "$(TITLE)" ]; then \

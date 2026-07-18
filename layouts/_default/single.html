@@ -15,6 +15,7 @@
     <div class="post-body">
       {{ .Content }}
     </div>
+    {{ if eq .Section "posts" }}
     <nav class="post-nav">
       {{ with .PrevInSection }}
         <a href="{{ .RelPermalink }}" class="post-nav-prev">← {{ .Title }}</a>
@@ -23,6 +24,7 @@
         <a href="{{ .RelPermalink }}" class="post-nav-next">{{ .Title }} →</a>
       {{ end }}
     </nav>
+    {{ end }}
   </article>
 </div>
 {{ end }}
