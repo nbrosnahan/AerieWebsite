@@ -30,8 +30,9 @@ weight = 1
     # Rendered by Congo's author-links.html partial in the homepage profile
     # block. Each entry is a single-key table keyed by an icon name; the key
     # must match a filename under the theme's assets/icons/ (verified against
-    # v2.14.0: instagram.svg, flickr.svg, github.svg, rss.svg, strava.svg,
-    # goodreads.svg exist) or the link silently renders nothing.
+    # v2.14.0: instagram.svg, bluesky.svg, threads.svg, flickr.svg,
+    # github.svg, linkedin.svg, rss.svg, strava.svg, goodreads.svg exist)
+    # or the link silently renders nothing.
     #
     # author-links.html emits `{{ $url | safeURL }}` verbatim -- it does not
     # pass the value through relURL/absURL, so a config string can't be made
@@ -44,10 +45,19 @@ weight = 1
       instagram = "https://www.instagram.com/gophixit/"
 
     [[params.author.links]]
+      bluesky = "https://bsky.app/profile/gophixit.bsky.social"
+
+    [[params.author.links]]
+      threads = "https://www.threads.com/@gophixit"
+
+    [[params.author.links]]
       flickr = "https://flickr.com/photos/gophixit/"
 
     [[params.author.links]]
       github = "https://github.com/nbrosnahan"
+
+    [[params.author.links]]
+      linkedin = "https://www.linkedin.com/in/nbrosnahan/"
 
     [[params.author.links]]
       rss = "https://brosnahan.org/index.xml"
