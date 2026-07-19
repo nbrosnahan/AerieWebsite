@@ -37,9 +37,9 @@ weight = 1
     # pass the value through relURL/absURL, so a config string can't be made
     # baseURL-subpath-aware the way template-authored hrefs elsewhere in this
     # repo are (see the "Fix URL generation for GitHub Pages project subpath"
-    # commit). The RSS href is therefore hardcoded to the current GitHub Pages
-    # subpath baseURL rather than a bare "/index.xml", which would 404 there.
-    # Update this alongside baseURL at the eventual brosnahan.org DNS cutover.
+    # commit). The RSS href is therefore hardcoded to the custom-domain
+    # absolute URL rather than a bare "/index.xml", which would 404 there.
+    # Update this if baseURL ever changes again.
     [[params.author.links]]
       instagram = "https://www.instagram.com/gophixit/"
 
@@ -50,7 +50,7 @@ weight = 1
       github = "https://github.com/nbrosnahan"
 
     [[params.author.links]]
-      rss = "https://nbrosnahan.github.io/AerieWebsite/index.xml"
+      rss = "https://brosnahan.org/index.xml"
 
     [[params.author.links]]
       strava = "https://www.strava.com/athletes/163364"
