@@ -30,9 +30,9 @@ weight = 1
     # Rendered by Congo's author-links.html partial in the homepage profile
     # block. Each entry is a single-key table keyed by an icon name; the key
     # must match a filename under the theme's assets/icons/ (verified against
-    # v2.14.0: instagram.svg, bluesky.svg, threads.svg, flickr.svg,
-    # github.svg, linkedin.svg, rss.svg, strava.svg, goodreads.svg exist)
-    # or the link silently renders nothing.
+    # v2.14.0: email.svg, instagram.svg, bluesky.svg, threads.svg,
+    # flickr.svg, github.svg, linkedin.svg, rss.svg, strava.svg,
+    # goodreads.svg exist) or the link silently renders nothing.
     #
     # author-links.html emits `{{ $url | safeURL }}` verbatim -- it does not
     # pass the value through relURL/absURL, so a config string can't be made
@@ -41,6 +41,12 @@ weight = 1
     # commit). The RSS href is therefore hardcoded to the custom-domain
     # absolute URL rather than a bare "/index.xml", which would 404 there.
     # Update this if baseURL ever changes again.
+
+    # A forwarding alias, not a personal address, so it can be rotated if it
+    # ever starts attracting spam.
+    [[params.author.links]]
+      email = "mailto:hello@brosnahan.org"
+
     [[params.author.links]]
       instagram = "https://www.instagram.com/gophixit/"
 
