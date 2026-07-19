@@ -18,7 +18,8 @@ build-site: ## Production build (hugo --minify) into public/
 # deploys: .github/workflows/deploy.yml runs plain `hugo --minify`, so
 # drafts stay unpublished on the live site.
 #
-# --baseURL http://localhost:1313/ overrides hugo.toml's production baseURL,
+# --baseURL http://localhost:1313/ overrides config/_default/hugo.toml's
+# production baseURL,
 # which carries a "/AerieWebsite/" subpath (GitHub Pages project URL). Without
 # this override, `hugo server` inherits that subpath and serves everything
 # under http://localhost:1313/AerieWebsite/, so the polling loop and Safari

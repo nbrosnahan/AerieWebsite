@@ -1,0 +1,34 @@
+# -- Main Menu --
+# In a config/_default/menus.<lang>.toml file the menu name is the top-level
+# key, so these are [[main]], not [[menu.main]] as they would be in hugo.toml.
+#
+# pageRef (rather than url) is used for internal destinations so Congo can mark
+# the active section in the header. /index.xml is not a page, so it uses url.
+
+[[main]]
+  name = "Writing"
+  pageRef = "posts"
+  weight = 10
+
+[[main]]
+  name = "About"
+  pageRef = "about"
+  weight = 20
+
+[[main]]
+  name = "Photography"
+  pageRef = "photography"
+  weight = 30
+
+[[main]]
+  name = "Tags"
+  pageRef = "tags"
+  weight = 40
+
+# Congo emits the feed only as a <head> rel="alternate" discovery link and
+# renders no visible feed link anywhere in the page, so -- as with the previous
+# theme -- this entry is what keeps the feed reachable by a human.
+[[main]]
+  name = "RSS"
+  url = "/index.xml"
+  weight = 50

@@ -1,0 +1,28 @@
+# -- Language Configuration --
+# Congo reads the site title and the site-level description from the language
+# config, not from hugo.toml. The theme ships its own config/_default/languages.en.toml
+# (title = "Congo"), which is merged in at lower priority -- so the title MUST
+# be set here, not in hugo.toml, or the theme's value wins and the site renders
+# as "Congo".
+#
+# `locale`/`label` are the current Hugo keys; the older `languageCode`/
+# `languageName` spellings are deprecated as of Hugo v0.158.0 and warn on build.
+locale = "en-US"
+label = "English"
+direction = "ltr"
+title = "The Aerie"
+weight = 1
+
+[params]
+  description = "A personal blog from San Francisco: cycling, transit, and housing advocacy, side projects, and photos from the city and beyond."
+
+  # Restricts the homepage's recent-articles list to the blog section.
+  mainSections = ["posts"]
+
+  # Congo has no "tagline" parameter. The profile homepage layout renders
+  # author.name as the <h1> and author.headline as the <h2> beneath it, which
+  # is the theme's equivalent of PaperMod's homeInfoParams -- it is what puts
+  # the tagline on the page itself rather than only in <title>. name is left
+  # unset so it falls back to site.Title ("The Aerie").
+  [params.author]
+    headline = "The stairs are a FEATURE"

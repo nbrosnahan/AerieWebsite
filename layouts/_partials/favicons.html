@@ -1,0 +1,65 @@
+{{- /*
+  Favicons.
+
+  favicons.html is Congo's supported override point for icons: its
+  _partials/head.html does
+
+      {{ if templates.Exists "_partials/favicons.html" }}
+        {{ partialCached "favicons.html" .Site }}
+      {{ else }}
+        ...theme defaults...
+      {{ end }}
+
+  so defining this partial REPLACES the theme's default icon tags rather than
+  adding to them. That is why this file emits the <link> tags itself -- unlike
+  PaperMod, Congo has no favicon parameters to drive its defaults from, and its
+  fallbacks point at Congo's own favicon.ico / site.webmanifest. Owning both
+  the files and the tags here is what guarantees no duplicate hrefs. Do not
+  fork the theme's head.html for this.
+
+  All sizes are derived at build time from the single master asset,
+  assets/images/aerie-icon.webp (512x512). resources.Copy pins each derivative
+  to a stable published path so the hrefs below resolve to real files.
+
+  Congo's static/ ships its own placeholder icons at these same paths
+  (favicon-16x16.png, favicon-32x32.png, apple-touch-icon.png,
+  android-chrome-{192,512}.png, favicon.ico, site.webmanifest) as an
+  override point: a project-level static/ file wins over a module's file at
+  the same path, so publishing our derivatives at those paths here (plus the
+  committed static/favicon.ico, see CLAUDE.md) replaces Congo's branding
+  everywhere except site.webmanifest, which nothing links to (see below).
+
+  android-chrome-192x192.png and android-chrome-512x512.png are published
+  from the master purely to override Congo's placeholders at those paths --
+  Android home-screen icons are normally declared via a web manifest, which
+  this site doesn't ship, so no <link> tag references them and they stay
+  unreferenced in public/. That's still preferable to leaving Congo's blank
+  placeholders reachable at those URLs.
+
+  site.webmanifest is NOT overridden here: nothing emits a <link
+  rel="manifest">, so Congo's copy (name "Congo", theme_color #ffffff,
+  background_color #7c3aed) is published but never parsed by a browser --
+  it's an inert orphan file, not a rendered branding leak.
+*/ -}}
+{{- with resources.Get "images/aerie-icon.webp" }}
+  {{- with .Resize "16x16 png" | resources.Copy "/favicon-16x16.png" }}
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ .RelPermalink }}" />
+  {{- end }}
+  {{- with .Resize "32x32 png" | resources.Copy "/favicon-32x32.png" }}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ .RelPermalink }}" />
+  {{- end }}
+  {{- with .Resize "180x180 png" | resources.Copy "/apple-touch-icon.png" }}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ .RelPermalink }}" />
+  {{- end }}
+  {{- /*
+    No <link> tag references these -- see the comment above -- so unlike the
+    three sizes above, nothing here accesses .RelPermalink to emit an href.
+    But resources.Copy alone does NOT publish to public/; only accessing
+    .Permalink or .RelPermalink on the result does. Assigning to a $-scoped
+    variable (rather than piping straight to an unwrapped action, which would
+    print the accessed value into the page as stray text) forces that publish
+    side effect silently.
+  */}}
+  {{- $android192 := (.Resize "192x192 png" | resources.Copy "/android-chrome-192x192.png").RelPermalink }}
+  {{- $android512 := (.Resize "512x512 png" | resources.Copy "/android-chrome-512x512.png").RelPermalink }}
+{{- end }}
