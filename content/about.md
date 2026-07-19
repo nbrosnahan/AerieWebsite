@@ -1,6 +1,7 @@
 ---
 title: "About"
-layout: "single"
+date: 2026-04-01T10:45:03-07:00
+showDate: false
 ---
 
 Hiya!  I’m Nick Brosnahan.  I have other names, but those are the important two.

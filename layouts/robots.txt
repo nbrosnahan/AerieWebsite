@@ -1,0 +1,76 @@
+# Policy: block AI/LLM *training*-data crawlers; allow retrieval and
+# AI-search crawlers. Retrieval/search bots fetch a page on behalf of a
+# human asking a question and cite/link back to the source -- that's the
+# same value exchange as a normal search engine, so they're left
+# unrestricted. Training crawlers ingest content to build model weights
+# with no attribution or referral traffic back to this site, so those are
+# opted out below.
+#
+# Compliance with robots.txt is voluntary. A well-behaved bot honors this
+# file, but nothing here can technically stop a bot from ignoring it.
+# Several are documented as doing exactly that regardless of this file's
+# contents: Bytespider (ByteDance/TikTok), Perplexity's undeclared
+# crawlers (distinct from the PerplexityBot/Perplexity-User user-agents
+# they do register), and xAI's crawlers. They're listed below anyway as a
+# statement of intent, but treat this file as a courtesy, not a fence.
+#
+# Content-Signal: search=yes, ai-input=yes, ai-train=no
+# The line above is the Cloudflare/IETF-draft "Content Signals Policy"
+# (published under CC0) -- it expresses intent by content-use category
+# (search indexing, AI input/retrieval, AI training) rather than by
+# naming individual bots, as a forward-compatible complement to the
+# per-user-agent rules below. It is a comment, not a robots.txt directive;
+# no crawler is required to honor it either.
+
+# --- Training crawlers: blocked ---
+# Google-Extended and Applebot-Extended are not crawlers themselves but
+# usage-control tokens that opt the existing Googlebot/Applebot fetches
+# out of AI-training use. Per Google's and Apple's own documentation,
+# disallowing them here has no effect on Google Search inclusion/ranking
+# or on Apple's search products -- only on training-data use of the same
+# crawl.
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: meta-externalagent
+User-agent: FacebookBot
+User-agent: Amazonbot
+User-agent: cohere-training-data-crawler
+User-agent: Google-CloudVertexBot
+User-agent: webzio-extended
+User-agent: Omgilibot
+User-agent: AI2Bot
+User-agent: Diffbot
+User-agent: ImagesiftBot
+User-agent: Timpibot
+User-agent: YouBot
+Disallow: /
+
+# Deliberately NOT listed above -- do not re-add:
+#   anthropic-ai, Claude-Web -- deprecated legacy user-agent strings,
+#     never officially documented by Anthropic; superseded by ClaudeBot
+#     (training) and Claude-User/Claude-SearchBot (retrieval, allowed
+#     below).
+#   cohere-ai -- superseded by cohere-training-data-crawler, listed above.
+
+# --- Retrieval and AI-search crawlers: explicitly allowed ---
+# These fetch pages on behalf of a human asking a question, and the
+# resulting answer cites and links back to the source -- the same
+# value exchange as a conventional search engine, so no Disallow group
+# is added for them. They fall through to the catch-all Allow: / below.
+# Listed here for documentation purposes only:
+#   ChatGPT-User, Claude-User, Perplexity-User, Meta-ExternalFetcher,
+#   MistralAI-User, OAI-SearchBot, Claude-SearchBot, PerplexityBot,
+#   Amzn-SearchBot, DuckAssistBot
+# Perplexity-User and Meta-ExternalFetcher are documented by their own
+# vendors as not governed by robots.txt in the first place -- they're
+# included here only so the allow-list intent is legible, not because
+# an entry here changes their behavior.
+
+User-agent: *
+Allow: /
+
+Sitemap: {{ "sitemap.xml" | absURL }}
