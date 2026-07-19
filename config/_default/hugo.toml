@@ -9,6 +9,11 @@ baseURL = "https://brosnahan.org/"
 
 defaultContentLanguage = "en"
 
+# Enables Hugo's built-in robots.txt generation, rendered from
+# layouts/robots.txt (overriding Congo's own template at that same path;
+# see the file for what it adds beyond Congo's default).
+enableRobotsTXT = true
+
 # Congo is consumed as a Hugo Module (not a submodule), pinned in go.mod to
 # the upstream release tag v2.14.0.
 [module]

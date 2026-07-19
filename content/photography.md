@@ -1,6 +1,5 @@
 ---
 title: "Photography"
-layout: "single"
 date: 2025-04-07
 ---
 

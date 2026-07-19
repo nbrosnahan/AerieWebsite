@@ -28,9 +28,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # PaperMod is a Hugo Module, so the Hugo build shells out to `go` to
-      # resolve it. Without Go on PATH the themed build fails in CI even
-      # though it succeeds locally.
+      # Congo is consumed as a Hugo Module, so the Hugo build shells out to
+      # `go` to resolve it. Without Go on PATH the themed build fails in CI
+      # even though it succeeds locally.
       - name: Setup Go
         uses: actions/setup-go@v6
         with:

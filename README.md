@@ -2,7 +2,7 @@
 
 The official website for [brosnahan.org](https://brosnahan.org).
 
-A minimal, hand-built Hugo blog — no theme, no npm, no build tooling beyond Hugo itself — deployed to GitHub Pages.
+A Hugo blog built on the [Congo](https://github.com/jpanther/congo) theme, consumed as a Hugo Module — no npm, no build tooling beyond Hugo itself (plus Go, which Hugo needs on `PATH` to resolve the theme module) — deployed to GitHub Pages.
 
 ## Local Development
 

@@ -61,6 +61,7 @@ The site renders via the **Congo theme module** — there is no hand-built `base
 | `static/favicon.ico` | A real multi-size ICO overriding Congo's blank placeholder at the same path — see Icon Overrides below |
 | `content/_index.md` | Homepage frontmatter (title only). The homepage body comes from Congo's `profile` home layout: the site title plus `params.author.headline` (the tagline), then the recent-articles list |
 | `archetypes/default.md` | Frontmatter template for `hugo new` (title, date, lastmod, description, tags, categories, draft) |
+| `layouts/robots.txt` | Congo's supported robots.txt override point (module ships its own template at the same relative path). Emits the site's AI-crawler policy — see Robots.txt / AI-Crawler Policy below. Requires `enableRobotsTXT = true` in `hugo.toml` or Hugo never renders it |
 | `scripts/migrate-wordpress.py` | **HISTORICAL — do not re-run.** The one-time WordPress→Hugo migration, completed 2026-07-18. It emits WordPress-era conventions (explicit `slug:` fields, flat `static/images/` paths, excerpt-derived descriptions) that the site has since abandoned; re-running it would reintroduce them and overwrite hand-written descriptions. Kept for the record only |
 | `content/posts/<slug>/` | **Page bundles.** Posts that carry images are directories: `index.md` plus the image files alongside it, referenced bundle-relatively as `{{< figure src="<file>" >}}`. Posts without images stay as flat `content/posts/<slug>.md`. Post/page images live in bundles, not `static/` — the only thing in `static/` is `favicon.ico` (see Icon Overrides below) |
 
@@ -109,6 +110,19 @@ This works because **a project-level `static/` file overrides a module's file at
 ### Search
 
 Search is enabled via `enableSearch = true` in `params.toml`. That alone wires up the header search button and the search modal (`header/basic.html` auto-adds a search button when no menu entry declares `action = "search"`, so `menus.en.toml` needs no change) — but the search index itself requires `[outputs] home = ["HTML", "RSS", "JSON"]` in `hugo.toml`. Congo's own module config declares that same `[outputs]` block, but it is **not** inherited: structured (non-map) keys like `[outputs]` don't merge from the theme module into a site's own `hugo.toml` once that file exists, so the block must be restated here or `public/index.json` (the search index the modal fetches client-side) never gets built.
+
+### Robots.txt / AI-Crawler Policy
+
+`layouts/robots.txt` renders the site's `robots.txt`, enabled by `enableRobotsTXT = true` in `hugo.toml` — without that setting Hugo emits no robots.txt at all, regardless of the template's presence. The file lives at the top-level `layouts/robots.txt`, not `static/robots.txt` and not `layouts/_default/`: that's the exact relative path Congo's own module uses for its default robots.txt, so a site-level file at that same path overrides it, the same override mechanism used elsewhere in this repo (see Icon Overrides). The sitemap line is templated as `{{ "sitemap.xml" | absURL }}` rather than hardcoded.
+
+**The policy blocks AI/LLM training crawlers but deliberately allows retrieval and AI-search crawlers** (`ChatGPT-User`, `Claude-User`, `Perplexity-User`, `OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot`, and similar). Retrieval/search bots fetch a page on behalf of a human asking a question and the resulting answer cites and links back — the same value exchange as a conventional search engine — whereas training crawlers ingest content into model weights with no attribution or referral traffic back to the site. **This asymmetry is the whole point of the file — do not "tighten" it by moving the retrieval/search bots into the training-crawler `Disallow` group**; doing so would just remove this blog from AI answers where it would otherwise be credited, without stopping any training.
+
+A few details worth not re-litigating:
+- Blocking `Google-Extended` / `Applebot-Extended` does **not** affect Google Search or Apple's search products — per both vendors' own documentation, these are training-use-control tokens layered on the existing Googlebot/Applebot crawl, not separate crawlers, so disallowing them has no effect on search inclusion or ranking.
+- The deprecated tokens `anthropic-ai`, `Claude-Web`, and `cohere-ai` are deliberately excluded, not overlooked — they're superseded (by `ClaudeBot`/`Claude-User`/`Claude-SearchBot` and `cohere-training-data-crawler` respectively) and the file documents this inline so a future audit doesn't "helpfully" re-add them.
+- robots.txt is voluntary, and GitHub Pages serves static files with no way to add custom response headers (no `X-Robots-Tag`), so there's no server-side enforcement behind it. Bytespider, Perplexity's undeclared crawlers, and xAI's crawlers are documented as ignoring robots.txt regardless of what it says. Treat this file as a statement of intent, not a fence.
+
+The template's own comments carry the full bot list and reasoning inline — this section only records the parts that would otherwise get silently reverted.
 
 ### Social Links
 

@@ -19,12 +19,12 @@ build-site: ## Production build (hugo --minify) into public/
 # drafts stay unpublished on the live site.
 #
 # --baseURL http://localhost:1313/ overrides config/_default/hugo.toml's
-# production baseURL,
-# which carries a "/AerieWebsite/" subpath (GitHub Pages project URL). Without
-# this override, `hugo server` inherits that subpath and serves everything
-# under http://localhost:1313/AerieWebsite/, so the polling loop and Safari
-# below would be pointed at a 404. The explicit localhost root keeps working
-# unchanged after the DNS cutover to brosnahan.org removes the subpath.
+# production baseURL, which is the custom domain https://brosnahan.org/.
+# Without this override, `hugo server` inherits that production domain and
+# serves everything with links pointed at brosnahan.org instead of
+# localhost, so the polling loop and Safari below would be pointed at the
+# wrong host. The explicit localhost root pins the local dev server to
+# localhost rather than the production domain.
 run-site: ## Serve with drafts + live navigation, open in Safari once ready
 	@echo "Starting Hugo server (drafts enabled) at http://localhost:1313/ ..."
 	@( \
