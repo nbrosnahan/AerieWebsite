@@ -70,9 +70,9 @@ Congo reads its configuration from `config/_default/*.toml`, and **which file a 
 
 | File | Holds |
 |------|-------|
-| `config/_default/hugo.toml` | Core Hugo settings: `baseURL`, `defaultContentLanguage`, `[taxonomies]` (`tag`/`category` — the URLs depend on these), `[pagination]` `pagerSize = 20`, and the `[module]` block importing Congo. No explicit `mounts` — Congo's default mounts are used as-is (see Icon Overrides below for why) |
-| `config/_default/languages.en.toml` | `title = "The Aerie"`, `locale`/`label`/`direction`, `params.description`, `params.mainSections`, and `params.author.headline` (the tagline) |
-| `config/_default/params.toml` | Congo's theme parameters: appearance, `[header]`, `[footer]`, `[homepage]`, `[article]`, `[list]`, `[taxonomy]` |
+| `config/_default/hugo.toml` | Core Hugo settings: `baseURL`, `defaultContentLanguage`, `[taxonomies]` (`tag`/`category` — the URLs depend on these), `[pagination]` `pagerSize = 20`, `[outputs] home = ["HTML", "RSS", "JSON"]` (the search index, see Search below), and the `[module]` block importing Congo. No explicit `mounts` — Congo's default mounts are used as-is (see Icon Overrides below for why) |
+| `config/_default/languages.en.toml` | `title = "The Aerie"`, `locale`/`label`/`direction`, `params.description`, `params.mainSections`, `params.author.headline` (the tagline), and `params.author.links` (the profile block's social icons — Instagram, Flickr, GitHub, RSS, see Social Links below) |
+| `config/_default/params.toml` | Congo's theme parameters: appearance, `enableSearch`, `[header]`, `[footer]`, `[homepage]`, `[article]`, `[list]`, `[taxonomy]` |
 | `config/_default/menus.en.toml` | The main menu. In a `menus.<lang>.toml` file the menu name is the **top-level** key, so entries are `[[main]]`, not `[[menu.main]]` as they would be in `hugo.toml` |
 
 Three traps worth knowing:
@@ -105,6 +105,14 @@ magick assets/images/aerie-icon.webp -define icon:auto-resize=48,32,16 static/fa
 (ImageMagick, `/opt/homebrew/bin/magick` on this machine, is a one-time authoring-time dependency only — the committed `.ico` is what ships, and CI never runs ImageMagick.)
 
 This works because **a project-level `static/` file overrides a module's file at the same path** — Congo's `static/` mount stays enabled (`hugo.toml` declares no explicit `[[module.imports.mounts]]`, so all of Congo's default mounts, including `static`, apply), and per-path overrides replace only the conflicting files rather than needing every other Congo directory re-declared to exclude `static` wholesale.
+
+### Search
+
+Search is enabled via `enableSearch = true` in `params.toml`. That alone wires up the header search button and the search modal (`header/basic.html` auto-adds a search button when no menu entry declares `action = "search"`, so `menus.en.toml` needs no change) — but the search index itself requires `[outputs] home = ["HTML", "RSS", "JSON"]` in `hugo.toml`. Congo's own module config declares that same `[outputs]` block, but it is **not** inherited: structured (non-map) keys like `[outputs]` don't merge from the theme module into a site's own `hugo.toml` once that file exists, so the block must be restated here or `public/index.json` (the search index the modal fetches client-side) never gets built.
+
+### Social Links
+
+The homepage profile block's row of social icons comes from `params.author.links` in `languages.en.toml` — an array of single-key tables keyed by icon name (`{ instagram = "..." }`, etc.), rendered by Congo's `author-links.html` partial. The icon key must match a filename under Congo's `assets/icons/` exactly, or the link silently renders nothing (no build error). That partial emits the URL verbatim (`{{ $url | safeURL }}`, no `relURL`/`absURL`), so a config value can't be made baseURL-subpath-aware the way template-authored hrefs elsewhere in this repo are — the RSS entry is therefore a hardcoded absolute URL matching the current GitHub Pages subpath `baseURL`, not a bare `/index.xml` (which would 404 there). Update it alongside `baseURL` at the eventual `brosnahan.org` DNS cutover.
 
 ## Theme Management
 

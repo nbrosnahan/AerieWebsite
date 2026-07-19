@@ -20,3 +20,11 @@ defaultContentLanguage = "en"
 
 [pagination]
   pagerSize = 20
+
+# Congo's own module config declares this same block, but structured (non-map)
+# keys like [outputs] are not inherited from the theme module into the site's
+# own hugo.toml -- once the site defines hugo.toml at all, [outputs] must be
+# restated here or no index.json is emitted, even with enableSearch = true.
+# Verified: removing this block drops public/index.json from the build.
+[outputs]
+  home = ["HTML", "RSS", "JSON"]

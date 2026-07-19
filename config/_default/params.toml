@@ -16,6 +16,13 @@ enableCodeCopy = true
 enableImageLazyLoading = true
 enableImageWebp = true
 
+# Congo's header/basic.html auto-adds a search button to the nav when this is
+# true and no menu entry already declares action = "search" -- no menus.en.toml
+# change is needed. It also requires the JSON home output (see hugo.toml
+# [outputs]) to produce the search index at /index.json; without it the search
+# button renders but has nothing to query.
+enableSearch = true
+
 [header]
   layout = "basic"
   showTitle = true

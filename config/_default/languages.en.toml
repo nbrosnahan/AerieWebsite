@@ -26,3 +26,36 @@ weight = 1
   # unset so it falls back to site.Title ("The Aerie").
   [params.author]
     headline = "The stairs are a FEATURE"
+
+    # Rendered by Congo's author-links.html partial in the homepage profile
+    # block. Each entry is a single-key table keyed by an icon name; the key
+    # must match a filename under the theme's assets/icons/ (verified against
+    # v2.14.0: instagram.svg, flickr.svg, github.svg, rss.svg, strava.svg,
+    # goodreads.svg exist) or the link silently renders nothing.
+    #
+    # author-links.html emits `{{ $url | safeURL }}` verbatim -- it does not
+    # pass the value through relURL/absURL, so a config string can't be made
+    # baseURL-subpath-aware the way template-authored hrefs elsewhere in this
+    # repo are (see the "Fix URL generation for GitHub Pages project subpath"
+    # commit). The RSS href is therefore hardcoded to the current GitHub Pages
+    # subpath baseURL rather than a bare "/index.xml", which would 404 there.
+    # Update this alongside baseURL at the eventual brosnahan.org DNS cutover.
+    [[params.author.links]]
+      instagram = "https://www.instagram.com/gophixit/"
+
+    [[params.author.links]]
+      flickr = "https://flickr.com/photos/gophixit/"
+
+    [[params.author.links]]
+      github = "https://github.com/nbrosnahan"
+
+    [[params.author.links]]
+      rss = "https://nbrosnahan.github.io/AerieWebsite/index.xml"
+
+    [[params.author.links]]
+      strava = "https://www.strava.com/athletes/163364"
+
+    # Restores the Goodreads "Books" widget the WordPress sidebar carried,
+    # which was lost in the migration to Congo.
+    [[params.author.links]]
+      goodreads = "https://www.goodreads.com/user/show/44690683-nick-brosnahan"
