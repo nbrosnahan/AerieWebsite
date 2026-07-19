@@ -1,0 +1,66 @@
+# -- Theme Options --
+# Congo's own parameter names -- see
+# https://jpanther.github.io/congo/docs/configuration/#theme-parameters
+# Unrecognised keys fail silently, so every key here is one Congo actually reads.
+
+colorScheme = "congo"
+
+# Follow the visitor's OS light/dark preference. This is Congo's equivalent of
+# PaperMod's defaultTheme = "auto": autoSwitchAppearance makes the theme track
+# prefers-color-scheme, with defaultAppearance as the fallback when the browser
+# expresses no preference.
+defaultAppearance = "light"
+autoSwitchAppearance = true
+
+enableCodeCopy = true
+enableImageLazyLoading = true
+enableImageWebp = true
+
+# Congo's header/basic.html auto-adds a search button to the nav when this is
+# true and no menu entry already declares action = "search" -- no menus.en.toml
+# change is needed. It also requires the JSON home output (see hugo.toml
+# [outputs]) to produce the search index at /index.json; without it the search
+# button renders but has nothing to query.
+enableSearch = true
+
+[header]
+  layout = "basic"
+  showTitle = true
+
+[footer]
+  showCopyright = true
+  showThemeAttribution = true
+  showAppearanceSwitcher = true
+  showScrollToTop = true
+
+# The homepage renders the profile block (site title + tagline, see
+# languages.en.toml) followed by the article list. recentLimit matches the
+# pagerSize so the homepage lists every post, as the previous homepage did.
+[homepage]
+  layout = "profile"
+  showRecent = true
+  recentLimit = 20
+
+[article]
+  showDate = true
+  showDateUpdated = false
+  # No author byline: author.name is deliberately unset (it exists only to let
+  # the profile homepage fall back to the site title), so a byline would be empty.
+  showAuthor = false
+  showBreadcrumbs = true
+  showDraftLabel = true
+  showHeadingAnchors = true
+  showPagination = true
+  showReadingTime = true
+  showTaxonomies = true
+  showWordCount = false
+
+[list]
+  showBreadcrumbs = true
+  showSummary = true
+  showTaxonomies = true
+  groupByYear = false
+  paginationWidth = 1
+
+[taxonomy]
+  showTermCount = true
