@@ -166,3 +166,86 @@ The owner **deliberately abandoned WordPress URL parity on 2026-07-18** and acce
 Push to `main` → GitHub Actions builds with Hugo and deploys to GitHub Pages. Workflow at `.github/workflows/deploy.yml`.
 
 The GitHub Pages custom domain is `brosnahan.org`, set via `static/CNAME` (containing `brosnahan.org`) plus the domain configured in repo Settings → Pages — both are required; doing only one of the two leaves the site unreachable. `config/_default/hugo.toml` declares `baseURL = "https://brosnahan.org/"`. `deploy.yml` still passes `--baseURL "${{ steps.pages.outputs.base_url }}/"`, which supersedes whatever the config says at build time regardless, and now resolves to the custom domain since it's set in Settings → Pages.
+
+## DNS and Email
+
+`brosnahan.org` is registered at **Namecheap**, and DNS is hosted there too, via Namecheap's free **BasicDNS** service (nameservers `dns1.registrar-servers.com` / `dns2.registrar-servers.com`) — registrar and DNS host are the same account, so there is no separate provider to keep in sync when records change. Registry expiry is **2027-07-24**; the domain carries `clientTransferProhibited` (transfer-locked), which is Namecheap's default anti-hijacking posture rather than something turned on deliberately for this project.
+
+There is no DNSSEC and no CAA record on the zone, both left off on purpose. A CAA record would restrict certificate issuance to a single named CA, but the marginal security benefit for a personal blog is small, and a misconfigured CAA record is a well-documented way to silently break a host's *automatic* certificate renewal — a real risk given how this site's own certificate provisioning has already behaved once (see below), so the tradeoff wasn't judged worth it.
+
+### Web Records
+
+DNS points the domain at GitHub Pages using GitHub's documented apex-plus-`www` pattern:
+
+| Record | Value |
+|--------|-------|
+| `brosnahan.org` A | 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153 |
+| `brosnahan.org` AAAA | 2606:50c0:8000::153, 2606:50c0:8001::153, 2606:50c0:8002::153, 2606:50c0:8003::153 |
+| `www` CNAME | `nbrosnahan.github.io` |
+
+`www` is not a second copy of the site — it resolves through GitHub's own redirect to whichever domain is configured as canonical in Settings → Pages, which here is the apex. Live behavior is two redirects, both expected: `http://` → 301 → `https://`, and `www.brosnahan.org` → 301 → `brosnahan.org`. HTTPS enforcement is a checkbox in repo Settings → Pages; the certificate itself is issued by Let's Encrypt and renews automatically once provisioned — see the next section for what reaching "provisioned" actually took.
+
+### Certificate Provisioning: GitHub Gives No Retry Button
+
+**GitHub only begins Let's Encrypt provisioning once the custom domain is set in Settings → Pages *and* DNS already resolves to GitHub** — there is no API call or UI control to request or retry issuance on demand; the domain field itself is the only lever. That matters because provisioning can stall with no diagnosable cause: on this domain the certificate sat in state `authorization_created` for **over three hours** with DNS fully correct, no CAA record blocking anything, and the domain already showing as verified. Nothing about that state changed on its own, and there was nothing to poll or nudge to move it along.
+
+**The only remedy that worked was removing and re-adding the custom domain**, which restarts provisioning from scratch:
+
+```bash
+gh api repos/nbrosnahan/AerieWebsite/pages -X PUT -f cname=""
+gh api repos/nbrosnahan/AerieWebsite/pages -X PUT -f cname="brosnahan.org"
+```
+
+(equivalently, clearing and retyping the domain in Settings → Pages). That produced an issued certificate within minutes, after three hours of the previous attempt going nowhere. Check current state with:
+
+```bash
+gh api repos/nbrosnahan/AerieWebsite/pages
+```
+
+and read `https_certificate.state` — `authorization_created` means still pending; wait for `approved`, the terminal success state and the only one `https_enforced` can be set from. An absent/null `https_certificate` is a different problem, not a stall: it means provisioning hasn't started at all, usually because DNS isn't resolving to GitHub yet or the domain isn't actually set.
+
+`https_enforced` cannot be set until the certificate actually exists: requesting enforcement too early gets a 404 (`The certificate does not exist yet`) from the API. Once the certificate is issued, set it with:
+
+```bash
+gh api repos/nbrosnahan/AerieWebsite/pages -X PUT -F https_enforced=true
+```
+
+**Note the `-F`, not `-f`.** `-F` sends a real JSON boolean; `-f` sends the literal string `"true"`, which the API rejects with a 422.
+
+**Enabling HTTPS enforcement is not the last step — one more deploy is required afterward.** `deploy.yml` passes `--baseURL "${{ steps.pages.outputs.base_url }}/"` to `hugo`, and that Pages API value only flips from `http://` to `https://` once enforcement is turned on. Every URL a build generated before that point — canonical links, RSS entries, the sitemap — still says `http://` until a *subsequent* workflow run picks up the now-`https://` value. Trigger a rebuild (any push to `main`) after flipping enforcement rather than assuming the already-deployed site updates itself.
+
+### Email — Receive-only Forwarding
+
+The domain receives mail but sends none — there is no mailbox, no SMTP submission, nothing capable of originating mail *as* `brosnahan.org`. MX records point at Namecheap's free email-forwarding service:
+
+| Priority | Host |
+|----------|------|
+| 10 | eforward1.registrar-servers.com |
+| 10 | eforward2.registrar-servers.com |
+| 10 | eforward3.registrar-servers.com |
+| 15 | eforward4.registrar-servers.com |
+| 20 | eforward5.registrar-servers.com |
+
+Two aliases are configured: `hello@brosnahan.org`, the published contact address linked from the homepage profile block (the `email` entry in `params.author.links`, see Social Links above), and `dmarc-reports@brosnahan.org`, which exists solely to receive DMARC aggregate reports (see Mail Authentication below). Both forward to a personal inbox; neither is a real mailbox anyone logs into.
+
+**The catch-all is deliberately left off — only these two explicit aliases exist.** A catch-all accepts mail for every guessed local part (`info@`, `admin@`, `sales@`, …), so dictionary-attack spam forwards through at no cost to the sender; with the catch-all off, mail to an unconfigured address simply bounces at the MX. This is also what makes `hello@` genuinely disposable: if it starts attracting spam it can be deleted and replaced with a freshly named alias, which is the entire reason a personal address isn't published directly in the first place.
+
+### Mail Authentication (SPF / DKIM / DMARC)
+
+SPF is a single TXT record: `v=spf1 include:spf.efwd.registrar-servers.com ~all`, authorizing Namecheap's forwarding infrastructure and costing 1 of SPF's 10 permitted DNS lookups.
+
+**Never publish two SPF records on this zone.** It briefly carried both this record and a stale `include:spf.web-hosting.com` entry left behind by the retired WordPress cPanel host. Two SPF TXT records for one domain is a `permerror` under RFC 7208, not "the stricter of the two wins" — the practical effect is that SPF can never pass for the domain at all until the duplicate is removed.
+
+There is no DKIM signing key. An orphaned `default._domainkey` record, another leftover from the old cPanel host, was removed; nothing on this domain signs outbound mail, which is consistent with the domain not sending any.
+
+DMARC is a `_dmarc` TXT record: `v=DMARC1; p=reject; sp=reject; adkim=s; aspf=s; rua=mailto:dmarc-reports@brosnahan.org`. `p=reject` is safe specifically *because* the domain sends no mail of its own — there is no legitimate outbound traffic for a strict policy to accidentally catch, so the policy only serves to make the domain unattractive to spoof. `ruf` (per-message failure reports) is deliberately omitted, since major receivers stopped honoring it years ago over the privacy implications of forwarding full message samples to a third party; the `fo` and `rf` tags were dropped along with it, since both only configure failure-report behavior. `pct` and `ri` were left out as restatements of their own defaults (100% and 86400s), not because they're unsupported.
+
+As an inbound caveat rather than a misconfiguration: because the MX is a forwarder, other senders' own SPF technically breaks in transit — the envelope sender Namecheap re-emits to the personal inbox isn't the original sender's domain. Namecheap compensates with SRS (Sender Rewriting Scheme), and DKIM signatures usually survive forwarding intact, so most mail is unaffected — but mail from a handful of unusually strict senders may occasionally get filtered on the receiving end. That's a property of forwarding generally, not something wrong with this domain's setup.
+
+### If This Domain Ever Needs to Send Mail
+
+**Gmail's "send as" feature will not work with this configuration, and it will look like it should work.** Consumer Gmail sets the envelope sender to the underlying `@gmail.com` address and DKIM-signs outgoing mail with `d=gmail.com` — neither SPF nor DKIM ends up aligned to `brosnahan.org`, which is exactly what `adkim=s`/`aspf=s` (strict alignment) plus `p=reject` exist to catch. Mail sent that way gets refused, not quarantined.
+
+Adding `include:_spf.google.com` to the SPF record is necessary if Gmail is ever used to send as this domain, but **it is not sufficient by itself** — it authorizes Google's sending IPs, but authorization isn't alignment, and DMARC under strict alignment checks alignment, not mere authorization.
+
+Actually sending as `hello@brosnahan.org` requires a mail host that DKIM-signs outbound mail with `d=brosnahan.org` — Fastmail, Migadu, Zoho, and Google Workspace (the paid product, not consumer Gmail) all qualify; consumer Gmail's free "send mail as" does not, regardless of any SPF change. The safe sequence, if this is ever done: drop DMARC to `p=none` first, stand up the new mail host, confirm SPF/DKIM alignment is actually passing in the aggregate reports arriving at `dmarc-reports@brosnahan.org`, and only then move the policy back to `p=reject`. Going straight to send-as while `p=reject` is still published means the very first message bounces.
