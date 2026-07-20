@@ -1,3 +1,11 @@
+---
+name: aerie-website
+title: AerieWebsite
+status: maintenance
+created: 2026-06-17
+color: "#01786f"   # Pine Tree
+tags: [hugo, website, static-site, blog]
+---
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
