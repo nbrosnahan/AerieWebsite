@@ -3,15 +3,19 @@ name: Deploy Hugo to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# PR runs get their own concurrency group keyed by ref rather than sharing
+# the "pages" group used by push/dispatch runs. The "pages" group has
+# cancel-in-progress: false, so a shared group would make PR builds queue
+# behind (or ahead of) an actual deploy instead of running independently.
 concurrency:
-  group: pages
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || 'pages' }}
   cancel-in-progress: false
 
 jobs:
@@ -20,45 +24,99 @@ jobs:
     env:
       HUGO_VERSION: "0.164.0"
     steps:
+      # This is the one point where the deploy pipeline trusts the network:
+      # the .deb is fetched over plain wget with no built-in integrity check,
+      # so the checksums file Hugo publishes alongside every release is
+      # downloaded too and the .deb is verified against it before dpkg ever
+      # runs. sha256sum -c is left to fail the step on mismatch (no `|| true`
+      # anywhere here) so a corrupted or tampered download hard-fails the job.
+      #
+      # `set -euo pipefail` is kept here and should not be removed, though it
+      # is portability hardening rather than a fix for an observed CI failure.
+      # GitHub Actions runs `run:` blocks as `bash -e` WITHOUT pipefail, so a
+      # pipeline's exit status is only the LAST command's. On the ubuntu-latest
+      # runner's GNU coreutils (9.4), a bare `grep ... | sha256sum -c -` with
+      # no match DOES fail correctly: sha256sum -c on empty stdin exits 1
+      # ("no properly formatted checksum lines found"), verified directly in
+      # an ubuntu:24.04 container. That's implementation-dependent, though —
+      # macOS's Darwin sha256sum (1.0) exits 0 on empty stdin, so the same
+      # bare pipeline would silently pass on a runner using that sha256sum.
+      # Extracting the matched checksum line into a file first removes that
+      # dependency and makes a no-match (e.g. a future Hugo release renaming
+      # the .deb, or a HUGO_VERSION bump with different asset naming) fail
+      # loudly and explicitly at the grep step regardless of platform.
       - name: Install Hugo
         run: |
-          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb
-          sudo dpkg -i ${{ runner.temp }}/hugo.deb
+          set -euo pipefail
+          cd ${{ runner.temp }}
+          wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb
+          wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_checksums.txt
+          grep "hugo_extended_${HUGO_VERSION}_linux-amd64.deb" "hugo_${HUGO_VERSION}_checksums.txt" > "${{ runner.temp }}/hugo_expected.sha256"
+          sha256sum -c "${{ runner.temp }}/hugo_expected.sha256"
+          sudo dpkg -i hugo_extended_${HUGO_VERSION}_linux-amd64.deb
 
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          # Nothing in this job pushes, so the GITHUB_TOKEN doesn't need to
+          # stay in .git/config for the rest of the job.
+          persist-credentials: false
 
       # Congo is consumed as a Hugo Module, so the Hugo build shells out to
       # `go` to resolve it. Without Go on PATH the themed build fails in CI
       # even though it succeeds locally.
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: "stable"
 
+      # Pages isn't configured for PR runs, since they never deploy.
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v6
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
 
       - name: Build with Hugo
-        run: hugo --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
+        if: github.event_name != 'pull_request'
+        run: hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
         env:
           HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
           HUGO_ENVIRONMENT: production
           TZ: America/New_York
 
+      # PR runs skip Setup Pages above, so steps.pages.outputs.base_url is
+      # empty here. Omit --baseURL entirely rather than pass an empty value
+      # (which would build with baseURL "/") and let Hugo fall back to
+      # config/_default/hugo.toml's baseURL instead.
+      - name: Build with Hugo (pull request)
+        if: github.event_name == 'pull_request'
+        run: hugo --gc --minify
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          HUGO_ENVIRONMENT: production
+          TZ: America/New_York
+
+      # No artifact upload for PR runs, since they never deploy.
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: ./public
 
   deploy:
+    # Never deploy from a pull request — only push to main / workflow_dispatch.
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    # Only the deploy job needs Pages write access; contents: read from the
+    # top-level permissions block is enough for build (checkout + hugo build).
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5

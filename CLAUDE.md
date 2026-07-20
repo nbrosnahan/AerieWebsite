@@ -29,7 +29,7 @@ make preflight
 ```
 
 `run-site` runs `hugo server -D --navigateToChanged` — drafts are visible
-locally, but `.github/workflows/deploy.yml` builds with plain `hugo --minify`,
+locally, but `.github/workflows/deploy.yml` builds with `hugo --gc --minify`,
 so drafts stay unpublished on the live site.
 
 **Authoring loop:** `make new-post TITLE=<slug>` creates the post with
@@ -64,6 +64,7 @@ The site renders via the **Congo theme module** — there is no hand-built `base
 | `layouts/robots.txt` | Congo's supported robots.txt override point (module ships its own template at the same relative path). Emits the site's AI-crawler policy — see Robots.txt / AI-Crawler Policy below. Requires `enableRobotsTXT = true` in `hugo.toml` or Hugo never renders it |
 | `scripts/migrate-wordpress.py` | **HISTORICAL — do not re-run.** The one-time WordPress→Hugo migration, completed 2026-07-18. It emits WordPress-era conventions (explicit `slug:` fields, flat `static/images/` paths, excerpt-derived descriptions) that the site has since abandoned; re-running it would reintroduce them and overwrite hand-written descriptions. Kept for the record only |
 | `content/posts/<slug>/` | **Page bundles.** Posts that carry images are directories: `index.md` plus the image files alongside it, referenced bundle-relatively as `{{< figure src="<file>" >}}`. Posts without images stay as flat `content/posts/<slug>.md`. Post/page images live in bundles, not `static/` — the only thing in `static/` is `favicon.ico` (see Icon Overrides below) |
+| `.github/dependabot.yml` | Weekly `gomod` + `github-actions` update checks. The `gomod` entry is what bumps the Congo theme pin (`go.mod`), since the theme is consumed as a Hugo Module; the `github-actions` entry bumps the SHA-pinned actions in `deploy.yml` — see Deployment below |
 
 ### Configuration layout
 
@@ -71,7 +72,7 @@ Congo reads its configuration from `config/_default/*.toml`, and **which file a 
 
 | File | Holds |
 |------|-------|
-| `config/_default/hugo.toml` | Core Hugo settings: `baseURL`, `defaultContentLanguage`, `[taxonomies]` (`tag`/`category` — the URLs depend on these), `[pagination]` `pagerSize = 20`, `[outputs] home = ["HTML", "RSS", "JSON"]` (the search index, see Search below), and the `[module]` block importing Congo. No explicit `mounts` — Congo's default mounts are used as-is (see Icon Overrides below for why) |
+| `config/_default/hugo.toml` | Core Hugo settings: `baseURL`, `defaultContentLanguage`, `[taxonomies]` (`tag`/`category` — the URLs depend on these), `[pagination]` `pagerSize = 20`, `[outputs] home = ["HTML", "RSS", "JSON"]` (the search index, see Search below), `[privacy] [privacy.youtube] privacyEnhanced = true` (makes the built-in `{{< youtube >}}` shortcode, used only by `content/posts/superman-sneak-peek.md`, emit `youtube-nocookie.com` instead of `www.youtube.com`), and the `[module]` block importing Congo. No explicit `mounts` — Congo's default mounts are used as-is (see Icon Overrides below for why) |
 | `config/_default/languages.en.toml` | `title = "The Aerie"`, `locale`/`label`/`direction`, `params.description`, `params.mainSections`, `params.author.headline` (the tagline), and `params.author.links` (the profile block's social icons — Instagram, Flickr, GitHub, RSS, see Social Links below) |
 | `config/_default/params.toml` | Congo's theme parameters: appearance, `enableSearch`, `[header]`, `[footer]`, `[homepage]`, `[article]`, `[list]`, `[taxonomy]` |
 | `config/_default/menus.en.toml` | The main menu. In a `menus.<lang>.toml` file the menu name is the **top-level** key, so entries are `[[main]]`, not `[[menu.main]]` as they would be in `hugo.toml` |
@@ -177,9 +178,15 @@ The owner **deliberately abandoned WordPress URL parity on 2026-07-18** and acce
 
 ## Deployment
 
-Push to `main` → GitHub Actions builds with Hugo and deploys to GitHub Pages. Workflow at `.github/workflows/deploy.yml`.
+Push to `main` → GitHub Actions builds with Hugo and deploys to GitHub Pages. A pull request against `main` also triggers the same workflow, but builds only — `Setup Pages`, `Upload artifact`, and the `deploy` job itself are all `if: github.event_name != 'pull_request'`, so a PR run never publishes anything and runs with narrower permissions (`contents: read` only; `pages: write`/`id-token: write` are scoped to the `deploy` job, which PR runs never reach). One behavioral difference worth knowing: a PR build validates against `config/_default/hugo.toml`'s own `baseURL`, not the Pages-provided one — `Setup Pages` is skipped on PRs (there's nothing to configure Pages access for), so its `base_url` output would be empty, and the PR build step omits `--baseURL` entirely rather than pass that empty value through. Workflow at `.github/workflows/deploy.yml`.
 
 The GitHub Pages custom domain is `brosnahan.org`, set via `static/CNAME` (containing `brosnahan.org`) plus the domain configured in repo Settings → Pages — both are required; doing only one of the two leaves the site unreachable. `config/_default/hugo.toml` declares `baseURL = "https://brosnahan.org/"`. `deploy.yml` still passes `--baseURL "${{ steps.pages.outputs.base_url }}/"`, which supersedes whatever the config says at build time regardless, and now resolves to the custom domain since it's set in Settings → Pages.
+
+### Supply-Chain Posture (`deploy.yml`)
+
+- **The Hugo `.deb` download is checksum-verified** against Hugo's own published `hugo_${HUGO_VERSION}_checksums.txt` before `dpkg -i` runs — `wget` alone gives no integrity check. **`set -euo pipefail` in that step is kept for portability, not because a live bypass was found on CI:** GitHub Actions runs `run:` blocks as `bash -e` without `pipefail`, so a pipeline's exit status is only the last command's, and a bare `grep ... | sha256sum -c -` with no match depends on which `sha256sum` is running — GNU coreutils 9.4 (what `ubuntu-latest` ships) exits 1 on empty stdin, so the runner actually used by this workflow fails correctly without the fix; macOS's Darwin `sha256sum` exits 0 on empty stdin, which is a real bypass, just not on this platform. The fix extracts the matched checksum line to a file first, removing the implementation dependency and making a no-match fail at `grep` with a clear locus rather than depending on `sha256sum`'s empty-input behavior. One known rough edge: `grep` prints nothing on no-match, so that failure mode is silent (fails closed, no diagnostic message) — accepted rather than fixed.
+- **All five actions are pinned to a commit SHA**, each with a trailing `# vN` comment so Dependabot can still parse and bump the version despite the pin.
+- **`persist-credentials: false` on the checkout step** — nothing in the job pushes, so the `GITHUB_TOKEN` doesn't need to stay in `.git/config` for the rest of the job.
 
 ## DNS and Email
 

@@ -6,8 +6,8 @@ help: ## Print available targets with one-line descriptions
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-build-site: ## Production build (hugo --minify) into public/
-	hugo --minify
+build-site: ## Production build (hugo --gc --minify) into public/
+	hugo --gc --minify
 
 # NOTE: run-site deliberately does NOT depend on build-site, unlike the
 # usual run-<platform> convention. `hugo server` builds in memory and
