@@ -1,0 +1,16 @@
+# Congo is consumed as a Hugo Module (see go.mod), so the theme is a regular
+# Go module dependency -- the gomod entry below is what bumps its pin
+# (currently github.com/jpanther/congo/v2 v2.14.0) automatically, so theme
+# updates arrive as PRs rather than only when someone manually runs
+# `hugo mod get -u`.
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

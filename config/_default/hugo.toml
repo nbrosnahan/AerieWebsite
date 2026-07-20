@@ -34,3 +34,13 @@ enableRobotsTXT = true
 # Verified: removing this block drops public/index.json from the build.
 [outputs]
   home = ["HTML", "RSS", "JSON"]
+
+# Makes the built-in {{< youtube >}} shortcode (used by
+# content/posts/superman-sneak-peek.md) emit youtube-nocookie.com instead of
+# www.youtube.com. This stops the embed from setting Google cookies on page
+# load regardless of whether the visitor ever plays the video. Verified
+# against the built output: without this, the embed renders as
+# src="https://www.youtube.com/embed/...".
+[privacy]
+  [privacy.youtube]
+    privacyEnhanced = true

@@ -20,35 +20,65 @@ jobs:
     env:
       HUGO_VERSION: "0.164.0"
     steps:
+      # This is the one point where the deploy pipeline trusts the network:
+      # the .deb is fetched over plain wget with no built-in integrity check,
+      # so the checksums file Hugo publishes alongside every release is
+      # downloaded too and the .deb is verified against it before dpkg ever
+      # runs. sha256sum -c is left to fail the step on mismatch (no `|| true`
+      # anywhere here) so a corrupted or tampered download hard-fails the job.
+      #
+      # `set -euo pipefail` is kept here and should not be removed, though it
+      # is portability hardening rather than a fix for an observed CI failure.
+      # GitHub Actions runs `run:` blocks as `bash -e` WITHOUT pipefail, so a
+      # pipeline's exit status is only the LAST command's. On the ubuntu-latest
+      # runner's GNU coreutils (9.4), a bare `grep ... | sha256sum -c -` with
+      # no match DOES fail correctly: sha256sum -c on empty stdin exits 1
+      # ("no properly formatted checksum lines found"), verified directly in
+      # an ubuntu:24.04 container. That's implementation-dependent, though —
+      # macOS's Darwin sha256sum (1.0) exits 0 on empty stdin, so the same
+      # bare pipeline would silently pass on a runner using that sha256sum.
+      # Extracting the matched checksum line into a file first removes that
+      # dependency and makes a no-match (e.g. a future Hugo release renaming
+      # the .deb, or a HUGO_VERSION bump with different asset naming) fail
+      # loudly and explicitly at the grep step regardless of platform.
       - name: Install Hugo
         run: |
-          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb
-          sudo dpkg -i ${{ runner.temp }}/hugo.deb
+          set -euo pipefail
+          cd ${{ runner.temp }}
+          wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb
+          wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_checksums.txt
+          grep "hugo_extended_${HUGO_VERSION}_linux-amd64.deb" "hugo_${HUGO_VERSION}_checksums.txt" > "${{ runner.temp }}/hugo_expected.sha256"
+          sha256sum -c "${{ runner.temp }}/hugo_expected.sha256"
+          sudo dpkg -i hugo_extended_${HUGO_VERSION}_linux-amd64.deb
 
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          # Nothing in this job pushes, so the GITHUB_TOKEN doesn't need to
+          # stay in .git/config for the rest of the job.
+          persist-credentials: false
 
       # Congo is consumed as a Hugo Module, so the Hugo build shells out to
       # `go` to resolve it. Without Go on PATH the themed build fails in CI
       # even though it succeeds locally.
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version: "stable"
 
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
 
       - name: Build with Hugo
-        run: hugo --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
+        run: hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
         env:
           HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
           HUGO_ENVIRONMENT: production
           TZ: America/New_York
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: ./public
 
@@ -61,4 +91,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
