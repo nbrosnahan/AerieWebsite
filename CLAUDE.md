@@ -178,7 +178,7 @@ The owner **deliberately abandoned WordPress URL parity on 2026-07-18** and acce
 
 ## Deployment
 
-Push to `main` → GitHub Actions builds with Hugo and deploys to GitHub Pages. Workflow at `.github/workflows/deploy.yml`.
+Push to `main` → GitHub Actions builds with Hugo and deploys to GitHub Pages. A pull request against `main` also triggers the same workflow, but builds only — `Setup Pages`, `Upload artifact`, and the `deploy` job itself are all `if: github.event_name != 'pull_request'`, so a PR run never publishes anything and runs with narrower permissions (`contents: read` only; `pages: write`/`id-token: write` are scoped to the `deploy` job, which PR runs never reach). One behavioral difference worth knowing: a PR build validates against `config/_default/hugo.toml`'s own `baseURL`, not the Pages-provided one — `Setup Pages` is skipped on PRs (there's nothing to configure Pages access for), so its `base_url` output would be empty, and the PR build step omits `--baseURL` entirely rather than pass that empty value through. Workflow at `.github/workflows/deploy.yml`.
 
 The GitHub Pages custom domain is `brosnahan.org`, set via `static/CNAME` (containing `brosnahan.org`) plus the domain configured in repo Settings → Pages — both are required; doing only one of the two leaves the site unreachable. `config/_default/hugo.toml` declares `baseURL = "https://brosnahan.org/"`. `deploy.yml` still passes `--baseURL "${{ steps.pages.outputs.base_url }}/"`, which supersedes whatever the config says at build time regardless, and now resolves to the custom domain since it's set in Settings → Pages.
 
