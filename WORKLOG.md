@@ -1,5 +1,26 @@
 # WORKLOG
 
+## 2026-07-20 — Move project metadata into the repo; record the licensing posture
+
+**Goal:** Migrate this project's metadata out of the central `~/.claude/ideas/` catalog, which
+was being retired, and into the project itself.
+
+**Done:**
+- Added YAML frontmatter to `CLAUDE.md` (`name`, `title`, `status`, `created`, `color`, `tags`).
+  The `color` field drives the terminal and VS Code title bars via `gen-project-colors.py`, which
+  now reads `~/Projects/*/CLAUDE.md` instead of the catalog.
+- Folded the catalog content worth keeping into `CLAUDE.md`: the site branding ("The Aerie") and
+  homepage tagline into the intro, and a `LICENSE` row in the architecture table.
+
+**Decisions:**
+- **The licensing deviation is now recorded in-repo.** This repo is public and deliberately *not*
+  Apache 2.0 — the writing and images are the asset, and it is public only because GitHub Pages
+  requires it. That was previously written down nowhere, so auditing against the org's
+  Apache-2.0-for-public-repos default kept flagging a deliberate choice as a violation.
+  `~/.claude/github-policy.md` gained a matching content-repo carve-out naming this repo.
+- Tagline casing was verified against `config/_default/languages.en.toml` ("The stairs are a
+  FEATURE") rather than trusted from the catalog, which had it lowercase.
+
 ## 2026-07-18 — Rebrand to The Aerie, clear placeholder content, prep for blog migration
 
 **Goal:** Rebrand the site from "Tumbling Potato" (tumblingpotato.org) to "The Aerie" (brosnahan.org), rename the repo/directory accordingly, and prepare the codebase to receive a WordPress→Hugo content migration.
