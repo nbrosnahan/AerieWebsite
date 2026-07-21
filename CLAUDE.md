@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A Hugo static site for [brosnahan.org](https://brosnahan.org), built on the [Congo](https://github.com/jpanther/congo) theme, consumed as a Hugo Module. No npm; the only build tooling beyond Hugo itself is Go, which Hugo needs on `PATH` to resolve the theme module (see Theme Management below).
+A Hugo static site for [brosnahan.org](https://brosnahan.org), built on the [Congo](https://github.com/jpanther/congo) theme, consumed as a Hugo Module. No npm; the only build tooling beyond Hugo itself is Go, which Hugo needs on `PATH` to resolve the theme module (see Theme Management below). The site is branded "The Aerie", with the tagline "The stairs are a FEATURE" as the homepage headline (see Social Links / Configuration layout above for where that string lives).
 
 ## Commands
 
@@ -64,6 +64,7 @@ The site renders via the **Congo theme module** — there is no hand-built `base
 |------|---------|
 | `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post`, `clean`, `preflight`, `help` |
 | `go.mod` / `go.sum` | Pin the Congo theme as a Hugo Module at the upstream release tag `v2.14.0` — see Theme Management below |
+| `LICENSE` | Proprietary, all-rights-reserved — not Apache 2.0. The written content is the asset here, not open-source code, so this repo deliberately departs from this org's usual public-repo licensing default |
 | `config/_default/` | **All site configuration.** Congo expects its config split across this directory rather than a single root `hugo.toml`; there is no root `hugo.toml` in this repo — see the file-by-file breakdown below |
 | `layouts/_partials/favicons.html` | Congo's supported icon override point. Generates the favicon / apple-touch-icon / android-chrome PNG derivatives from `assets/images/aerie-icon.webp` **and emits three `<link>` tags** (16x16, 32x32, apple-touch-icon) — defining this partial *replaces* Congo's default icon tags rather than adding to them, which is what keeps the hrefs from duplicating |
 | `static/favicon.ico` | A real multi-size ICO overriding Congo's blank placeholder at the same path — see Icon Overrides below |
