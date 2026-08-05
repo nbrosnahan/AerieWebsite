@@ -1,7 +1,7 @@
 # -- Theme Options --
 # Congo's own parameter names -- see
 # https://jpanther.github.io/congo/docs/configuration/#theme-parameters
-# Unrecognised keys fail silently, so every key here is one Congo actually reads.
+# Unrecognized keys fail silently, so every key here is one Congo actually reads.
 
 colorScheme = "congo"
 
