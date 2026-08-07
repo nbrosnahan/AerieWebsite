@@ -13,5 +13,6 @@ Thumbs.db
 # Hugo lock
 .hugo_build.lock
 
-# Claude Code local config
-.claude/
+# Claude Code local config — settings.json (sandbox policy) is tracked
+.claude/*
+!.claude/settings.json
