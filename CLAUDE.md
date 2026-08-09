@@ -3,7 +3,7 @@ name: aerie-website
 title: AerieWebsite
 status: maintenance
 created: 2026-06-17
-color: "#01786f"   # Pine Tree
+color: "#01786f"   # Pine Green
 tags: [hugo, website, static-site, blog]
 ---
 # CLAUDE.md
