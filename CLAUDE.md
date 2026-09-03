@@ -169,6 +169,10 @@ It is a *device* task: it requires this Mac (Claude Desktop, macOS) and works th
 `device_bash`, with the repo mounted at `$HOME/mnt/AerieWebsite` rather than at its real
 path. It is set to auto-approve.
 
+**It also gets run by hand**, so new files can appear in `content/ideas/` on any day of
+the week. Ideas arriving off-schedule are normal and are not a sign the trigger is
+misconfigured.
+
 **The task itself lives in Cowork, not in this repo.** It cannot be grepped, diffed,
 reviewed, or version-controlled from a checkout, and nothing here will fail if its
 instructions drift — so a change to how ideas are generated is an edit in the Cowork UI,
@@ -194,7 +198,9 @@ Each run:
 These are constraints in its instructions, and code or docs here shouldn't assume otherwise:
 
 - **It runs no git commands.** New ideas land as untracked files in the working tree;
-  committing them (or not) is a manual decision.
+  committing them (or not) is a manual decision. Nothing in `content/ideas/` is precious —
+  they are disposable prompts, regenerated weekly, and deleting or ignoring a batch costs
+  nothing. Only `_index.md` is structural.
 - **It writes nothing outside `content/ideas/`** — in particular it does not touch
   `BEATS.md`, config, or `content/posts/`.
 - **It does not build.** `hugo` and `go` are not installed in the device shell, so the job
