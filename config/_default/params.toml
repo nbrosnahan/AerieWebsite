@@ -57,7 +57,16 @@ enableSearch = true
 
 [list]
   showBreadcrumbs = true
-  showSummary = true
+  # Off deliberately: this governs article-link.html, which renders `.Summary` --
+  # Hugo's auto-excerpt of the first 70 words of *rendered* markdown, so it drags
+  # in the post's first figure and its whole responsive <picture> element along
+  # with the prose (the door-lock entry was 7.7 KB of list-item HTML). Congo uses
+  # article-link.html for the homepage recent-articles list and for the /posts/,
+  # /tags/<t>/ and /categories/<c>/ list pages alike, so this one flag makes all
+  # of them title + meta only. There is no config path to a homepage-only
+  # setting; a per-post `showSummary:` frontmatter key goes the other way, turning
+  # the summary back on everywhere that post is listed.
+  showSummary = false
   showTaxonomies = true
   groupByYear = false
   paginationWidth = 1
