@@ -46,6 +46,11 @@ locally since drafts are rendered; the post stays out of the production
 build until `draft: true` is flipped to `false` in its frontmatter; deploying
 is a push to `main`.
 
+Post *ideas* arrive on their own schedule: a weekly Cowork job drops five
+researched topic prompts into `content/ideas/` every Monday morning, and
+promoting one is a different starting point than `make new-post` — see Idea
+Pipeline below.
+
 **Description convention:** every post's `description:` frontmatter is a
 single short fragment naming what the post is about — not a full sentence,
 no terminal period. Roughly 25–110 characters is the observed range across
@@ -73,6 +78,8 @@ The site renders via the **Congo theme module** — there is no hand-built `base
 | `layouts/robots.txt` | Congo's supported robots.txt override point (module ships its own template at the same relative path). Emits the site's AI-crawler policy — see Robots.txt / AI-Crawler Policy below. Requires `enableRobotsTXT = true` in `hugo.toml` or Hugo never renders it |
 | `scripts/migrate-wordpress.py` | **HISTORICAL — do not re-run.** The one-time WordPress→Hugo migration, completed 2026-07-18. It emits WordPress-era conventions (explicit `slug:` fields, flat `static/images/` paths, excerpt-derived descriptions) that the site has since abandoned; re-running it would reintroduce them and overwrite hand-written descriptions. Kept for the record only |
 | `content/posts/<slug>/` | **Page bundles.** Posts that carry images are directories: `index.md` plus the image files alongside it, referenced bundle-relatively as `{{< figure src="<file>" >}}`. Posts without images stay as flat `content/posts/<slug>.md`. Post/page images live in bundles, not `static/` — the only thing in `static/` is `favicon.ico` (see Icon Overrides below) |
+| `BEATS.md` | The list of topics the weekly Cowork idea generator researches — one `## ` heading per beat, `(paused)` in a heading skips it, bullets under it are hints. This is the whole hand-editable configuration surface for that job; see Idea Pipeline below |
+| `content/ideas/` | The idea queue that job writes into — never published. `_index.md` sets `cascade: draft: true` over the whole section; see Idea Pipeline below |
 | `.github/dependabot.yml` | Weekly `gomod` + `github-actions` update checks. The `gomod` entry is what bumps the Congo theme pin (`go.mod`), since the theme is consumed as a Hugo Module; the `github-actions` entry bumps the SHA-pinned actions in `deploy.yml` — see Deployment below |
 
 ### Configuration layout
@@ -153,6 +160,93 @@ hugo mod get -u github.com/jpanther/congo/v2
 **PaperMod was evaluated first and rejected — do not re-litigate this.** The site briefly ran on [PaperMod](https://github.com/adityatelange/hugo-PaperMod) and was moved off it on 2026-07-18 for one reason: **PaperMod cannot be pinned to a release tag.** Its newest release, v8.0 (Nov 2024), predates Hugo v0.146's template-system rewrite and fails to build on Hugo 0.164 (`partial ... _funcs/get-page-images not found`); the fix landed on `master` but has never been tagged, and PaperMod's tags are not valid semver besides. Running it therefore required pinning a bare upstream commit indefinitely. Congo has proper semver tags, builds clean on Hugo 0.164, and has an active upstream, so the pin is a supported release rather than an arbitrary commit. Switching back to PaperMod would reintroduce the unpinnable-theme problem.
 
 **CI requires Go.** Because Hugo Modules resolve at build time via `go`, `.github/workflows/deploy.yml` runs `actions/setup-go` before the Hugo build step. Removing that step breaks the deploy — the themed build succeeds locally only because Go is already on this machine's `PATH`.
+
+## Idea Pipeline (weekly Cowork job)
+
+Blog topic prompts are generated weekly by a **Claude Cowork scheduled task named
+"Weekly blog ideas — AerieWebsite"**, which runs **every Monday at 7:00 AM Pacific**.
+It is a *device* task: it requires this Mac (Claude Desktop, macOS) and works through
+`device_bash`, with the repo mounted at `$HOME/mnt/AerieWebsite` rather than at its real
+path. It is set to auto-approve.
+
+**The task itself lives in Cowork, not in this repo.** It cannot be grepped, diffed,
+reviewed, or version-controlled from a checkout, and nothing here will fail if its
+instructions drift — so a change to how ideas are generated is an edit in the Cowork UI,
+not a commit. What *is* in the repo is its input (`BEATS.md`) and its output
+(`content/ideas/`).
+
+Each run:
+
+1. Re-reads `BEATS.md` — every `## ` heading is one beat, headings containing `(paused)`
+   are skipped, bullets under a beat are hints rather than requirements. It never assumes
+   last week's beats and it never edits this file, so `BEATS.md` is safe to hand-edit at
+   any time and is the intended way to steer the job.
+2. Reads the filenames in `content/posts/` and `content/ideas/` so it doesn't hand over an
+   idea that already exists or was already suggested.
+3. Web-searches each beat for items from roughly the past one to two weeks. Every idea must
+   be grounded in a real, current, linkable item — no evergreen filler. A beat with nothing
+   fresh is skipped, and the slot goes to a beat that does have something.
+4. Writes **exactly 5** files into `content/ideas/`, named `YYYY-MM-DD-short-slug.md`.
+5. Ends with a one-line-per-idea summary plus a note on any beat it skipped and why.
+
+### What the job will not do
+
+These are constraints in its instructions, and code or docs here shouldn't assume otherwise:
+
+- **It runs no git commands.** New ideas land as untracked files in the working tree;
+  committing them (or not) is a manual decision.
+- **It writes nothing outside `content/ideas/`** — in particular it does not touch
+  `BEATS.md`, config, or `content/posts/`.
+- **It does not build.** `hugo` and `go` are not installed in the device shell, so the job
+  can't validate its own output by rendering the site.
+
+### Idea file format
+
+Idea frontmatter matches a post's, plus one extra key:
+
+```yaml
+---
+title: "..."
+date: <RFC3339, Pacific offset>
+lastmod: <same>
+description: "short fragment, no period, no URLs"
+tags: [...]
+categories: ["..."]
+draft: true
+beat: "<the beat heading it came from>"
+---
+```
+
+`beat:` is **provenance only** — it is not a Hugo or Congo parameter and nothing renders it.
+The body is `## Prompt` / `## Why now` / `## Angles` / `## Links`, plus a
+`## Prior art on this site` section listing repo-relative paths when the idea is a genuine
+follow-up to an existing post.
+
+Note that the description convention documented under Commands above is **restated inside
+the Cowork task's own instructions**, since the task can't read this file's rules by
+reference. If that convention ever changes here, it has to be changed there too or the
+generated ideas will quietly drift from house style.
+
+### Why nothing in `content/ideas/` can publish
+
+Two independent mechanisms, and both are load-bearing enough to leave alone:
+
+- `content/ideas/_index.md` sets `cascade: draft: true`, so every page in the section is a
+  draft regardless of its own frontmatter — and the production build (`hugo --gc --minify`,
+  no `-D`) drops drafts.
+- `params.mainSections = ["posts"]` in `config/_default/languages.en.toml` keeps the section
+  out of the homepage list, the RSS feed, and Congo's article listings.
+
+`make run-site` uses `-D`, so ideas *are* visible in local preview — that's the point.
+
+### Promoting an idea to a post
+
+Move the file to `content/posts/<slug>.md` (or a bundle directory if it will carry images),
+flip `draft` to `false`, drop the `beat:` key, and delete the `## Prompt` / `## Why now` /
+`## Angles` / `## Links` / `## Prior art` scaffolding. **The filename becomes the URL** (see
+URL scheme below), so rename it to the slug the post should actually live at rather than
+keeping the dated idea filename. Rewrite `description:` for the finished post — the
+generated one describes the *idea*, not the piece.
 
 ## Content Migration
 
