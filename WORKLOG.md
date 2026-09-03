@@ -252,3 +252,34 @@ was being retired, and into the project itself.
 - **Rejected: `[frontmatter] date = [":filename", ":default"]`.** It strips the date prefix from the URL automatically and needs no `slug:` fields, which makes it look like the clean answer. It is not: the stripping only happens because Hugo takes the date *from* the filename, which then overrides frontmatter `date:` and discards the time of day. Four dates here carry multiple posts (four on 2025-04-05, three on 2025-04-01, two each on 2025-04-23 and 2025-05-31), and without times they sort alphabetically — measured to reorder 11 of the 14 posts. Recorded so this isn't re-proposed as a simplification.
 - **Rejected: dated filenames with dated URLs** (rename only, no `slug:`). Ordering and dates survive, but all 14 current URLs would 404 unless paired with `aliases:` on every post. These are the live, indexed URLs; churning them for a filing convention isn't worth it.
 - Historical `WORKLOG.md` entries still naming pre-rename paths were left alone — those filenames were accurate when written.
+
+## 2026-09-03 — Enforce the post-filename convention in preflight; fix a silently-passing gate
+
+**Goal:** The `YYYY-MM-DD-` post filename convention adopted earlier today was enforced by nothing — only `make new-post` applied it, and any other route produced a silently valid non-conforming post.
+
+**Done:**
+- New `make check-post-names` target: fails if anything in `content/posts/` (flat file or page-bundle directory, `_index.md` exempted) lacks a `YYYY-MM-DD-` prefix. Wired into `preflight`.
+- `CLAUDE.md`: documents the target, why the convention needs a guard at all, and the `check-post-names` entry in the Makefile architecture row.
+
+**Fixed along the way — `preflight` was not actually gating.** Its recipe chained steps with `;`, so a failing step only printed its error and preflight carried on, exiting 0 on the strength of whatever ran last. Caught by testing the failure path: `check-post-names` failed, `build-site` ran anyway, and `preflight` reported success. Now chained with `&&`, verified to stop at the failure and exit non-zero. **This flaw predates today's change** — the original `clean; build-site` had it too; it went unnoticed because `clean` does not realistically fail. Any past green `preflight` where a step failed would have been reported as passing.
+
+**Verification:**
+- Clean tree: `check-post-names` prints "Post filenames OK."; `preflight` completes, 84 pages.
+- Violating flat file (`hugo new posts/violating-post.md`): check fails, exit 1; `preflight` exits 2 **without running `build-site`**.
+- Violating page-bundle directory (`content/posts/undated-bundle/`): also caught, confirming the check is not file-only.
+
+**Decisions:**
+- **The guard has to live in the Makefile because Hugo cannot provide it.** `hugo new posts/<name>.md` writes exactly the path given; no Hugo setting rewrites that path, and archetypes control a file's contents, never its name — an archetype can strip a date prefix (as this one does) but can never add one. Confirmed against Hugo's `new content` command reference: no flag or config option affects the output filename.
+- **Nothing else would ever catch a violation**, which is why the check earns its place: new posts are `draft: true` so a build never renders them, and once published the `slug:` field makes the URL correct regardless of filename. An undated post is invisibly valid.
+
+## 2026-09-03 — Document `content/ideas/_previous/`
+
+**Goal:** A `_previous/` subdirectory appeared under `content/ideas/` mid-session with no explanation in the repo, which is how a future session ends up deleting it as cruft.
+
+**Done:**
+- `CLAUDE.md`: new subsection under Idea Pipeline explaining the directory, plus a bullet in the job's constraints list noting it does not delete.
+
+**Decisions / durable facts:**
+- **The Cowork task moves superseded batches instead of deleting them because it cannot reliably get deletions authorized.** This is a workaround, not a design preference. Don't "fix" the accumulation by wiring deletion back into the task — the authorization problem is exactly why the directory exists. Hand-pruning when it gets noisy is fine.
+- **The leading underscore is doing no work.** Hugo has no convention of ignoring `_`-prefixed directories — that is Jekyll. Verified with `hugo list drafts`: the files under `_previous/` are real pages in the `ideas` section with real permalinks (`/ideas/_previous/<slug>/`). They stay unpublished solely because the section's `cascade: draft: true` reaches them like any other descendant. Removing that cascade would publish this directory too, which is worth knowing before anyone treats the underscore as the safeguard.
+- Confirmed against the current build: nothing under `content/ideas/` reaches `public/`.
