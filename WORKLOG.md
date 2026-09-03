@@ -271,3 +271,15 @@ was being retired, and into the project itself.
 **Decisions:**
 - **The guard has to live in the Makefile because Hugo cannot provide it.** `hugo new posts/<name>.md` writes exactly the path given; no Hugo setting rewrites that path, and archetypes control a file's contents, never its name — an archetype can strip a date prefix (as this one does) but can never add one. Confirmed against Hugo's `new content` command reference: no flag or config option affects the output filename.
 - **Nothing else would ever catch a violation**, which is why the check earns its place: new posts are `draft: true` so a build never renders them, and once published the `slug:` field makes the URL correct regardless of filename. An undated post is invisibly valid.
+
+## 2026-09-03 — Document `content/ideas/_previous/`
+
+**Goal:** A `_previous/` subdirectory appeared under `content/ideas/` mid-session with no explanation in the repo, which is how a future session ends up deleting it as cruft.
+
+**Done:**
+- `CLAUDE.md`: new subsection under Idea Pipeline explaining the directory, plus a bullet in the job's constraints list noting it does not delete.
+
+**Decisions / durable facts:**
+- **The Cowork task moves superseded batches instead of deleting them because it cannot reliably get deletions authorized.** This is a workaround, not a design preference. Don't "fix" the accumulation by wiring deletion back into the task — the authorization problem is exactly why the directory exists. Hand-pruning when it gets noisy is fine.
+- **The leading underscore is doing no work.** Hugo has no convention of ignoring `_`-prefixed directories — that is Jekyll. Verified with `hugo list drafts`: the files under `_previous/` are real pages in the `ideas` section with real permalinks (`/ideas/_previous/<slug>/`). They stay unpublished solely because the section's `cascade: draft: true` reaches them like any other descendant. Removing that cascade would publish this directory too, which is worth knowing before anyone treats the underscore as the safeguard.
+- Confirmed against the current build: nothing under `content/ideas/` reaches `public/`.

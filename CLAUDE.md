@@ -265,6 +265,8 @@ These are constraints in its instructions, and code or docs here shouldn't assum
   nothing. Only `_index.md` is structural.
 - **It writes nothing outside `content/ideas/`** — in particular it does not touch
   `BEATS.md`, config, or `content/posts/`.
+- **It does not delete.** Superseded batches are moved into `content/ideas/_previous/`
+  instead, because the task cannot reliably get deletions authorized — see below.
 - **It does not build.** `hugo` and `go` are not installed in the device shell, so the job
   can't validate its own output by rendering the site.
 
@@ -294,6 +296,21 @@ Note that the description convention documented under Commands above is **restat
 the Cowork task's own instructions**, since the task can't read this file's rules by
 reference. If that convention ever changes here, it has to be changed there too or the
 generated ideas will quietly drift from house style.
+
+### `content/ideas/_previous/` — the job archives, it does not delete
+
+Old idea batches are **moved into `content/ideas/_previous/` rather than deleted**. This is a
+workaround, not a design choice: the Cowork task has trouble getting deletions authorized, so it
+moves files instead. Do not "fix" the accumulation by wiring deletion back into the task — the
+authorization problem is what put the directory there in the first place. Pruning it by hand,
+whenever it gets noisy, is fine and expected.
+
+**The underscore does nothing on its own.** Hugo has no convention of ignoring `_`-prefixed
+directories — that is Jekyll. Hugo treats `_previous/` as an ordinary part of the `ideas`
+section: its files are real pages with real permalinks (`/ideas/_previous/<slug>/`), and
+`hugo list drafts` shows them. They stay unpublished for exactly one reason — the section's
+`cascade: draft: true` reaches them like any other descendant. If that cascade were ever
+removed, this directory would publish along with everything else.
 
 ### Why nothing in `content/ideas/` can publish
 
