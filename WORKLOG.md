@@ -2,284 +2,634 @@
 
 ## 2026-07-20 — Move project metadata into the repo; record the licensing posture
 
-**Goal:** Migrate this project's metadata out of the central `~/.claude/ideas/` catalog, which
-was being retired, and into the project itself.
+**Goal:** Migrate this project's metadata out of the central `~/.claude/ideas/` catalog, which was being retired, and
+into the project itself.
 
 **Done:**
-- Added YAML frontmatter to `CLAUDE.md` (`name`, `title`, `status`, `created`, `color`, `tags`).
-  The `color` field drives the terminal and VS Code title bars via `gen-project-colors.py`, which
-  now reads `~/Projects/*/CLAUDE.md` instead of the catalog.
-- Folded the catalog content worth keeping into `CLAUDE.md`: the site branding ("The Aerie") and
-  homepage tagline into the intro, and a `LICENSE` row in the architecture table.
+
+- Added YAML frontmatter to `CLAUDE.md` (`name`, `title`, `status`, `created`, `color`, `tags`). The `color` field
+  drives the terminal and VS Code title bars via `gen-project-colors.py`, which now reads `~/Projects/*/CLAUDE.md`
+  instead of the catalog.
+- Folded the catalog content worth keeping into `CLAUDE.md`: the site branding ("The Aerie") and homepage tagline into
+  the intro, and a `LICENSE` row in the architecture table.
 
 **Decisions:**
-- **The licensing deviation is now recorded in-repo.** This repo is public and deliberately *not*
-  Apache 2.0 — the writing and images are the asset, and it is public only because GitHub Pages
-  requires it. That was previously written down nowhere, so auditing against the org's
-  Apache-2.0-for-public-repos default kept flagging a deliberate choice as a violation.
-  `~/.claude/github-policy.md` gained a matching content-repo carve-out naming this repo.
-- Tagline casing was verified against `config/_default/languages.en.toml` ("The stairs are a
-  FEATURE") rather than trusted from the catalog, which had it lowercase.
+
+- **The licensing deviation is now recorded in-repo.** This repo is public and deliberately *not* Apache 2.0 — the
+  writing and images are the asset, and it is public only because GitHub Pages requires it. That was previously written
+  down nowhere, so auditing against the org's Apache-2.0-for-public-repos default kept flagging a deliberate choice as a
+  violation. `~/.claude/github-policy.md` gained a matching content-repo carve-out naming this repo.
+- Tagline casing was verified against `config/_default/languages.en.toml` ("The stairs are a FEATURE") rather than
+  trusted from the catalog, which had it lowercase.
 
 ## 2026-07-18 — Rebrand to The Aerie, clear placeholder content, prep for blog migration
 
-**Goal:** Rebrand the site from "Tumbling Potato" (tumblingpotato.org) to "The Aerie" (brosnahan.org), rename the repo/directory accordingly, and prepare the codebase to receive a WordPress→Hugo content migration.
+**Goal:** Rebrand the site from "Tumbling Potato" (tumblingpotato.org) to "The Aerie" (brosnahan.org), rename the
+repo/directory accordingly, and prepare the codebase to receive a WordPress→Hugo content migration.
 
 **Done:**
-- Removed placeholder content: deleted `content/posts/beginnings.md`; cleared the placeholder body of `content/about.md`. `content/posts/` is now empty, staged for a migration of 15 posts from brosnahan.org.
-- Rewrote `LICENSE`: copyright now Nick Brosnahan (was "Tumbling Potato"), reworded to be content-focused (writing/posts/images plus templates and styles) rather than software-focused, dropped the software warranty/liability boilerplate. Remains all-rights-reserved, deliberately not open source.
-- Bumped the Hugo version pin 0.157.0 → 0.164.0 in `.github/workflows/deploy.yml`; upgraded local Homebrew Hugo to match.
-- Config: `languageCode = "en-us"` → `locale = "en-US"` in `hugo.toml` (the `languageCode` key was deprecated in Hugo 0.158.0; `locale` takes an RFC 5646 tag).
-- `layouts/_default/baseof.html`: `lang="{{ .Site.Language.Lang }}"` → `lang="{{ .Site.Language.Locale }}"`. `.Lang` returns the language key (`en`) and ignored the locale entirely; verified the rendered output changed from `<html lang=en>` to `<html lang=en-US>`.
-- Rebrand: `hugo.toml` title → "The Aerie", tagline → "The stairs are a feature", baseURL → `https://brosnahan.org/`, meta description replaced (currently a generic placeholder pending real copy); `content/_index.md` title → "The Aerie"; `layouts/partials/footer.html` copyright → "Nick Brosnahan".
-- Renamed the repo and directory `TPWebsite` → `AerieWebsite`; GitHub repo renamed (remote auto-updated), `to-be-reviewed` topic removed. Project catalog entry renamed `tp-website.md` → `aerie-website.md` with its badly stale "90s under-construction splash page" description rewritten, catalog index reordered alphabetically, and `project-colors.zsh` regenerated (these live in the chezmoi repo, committed separately).
-- Added `Makefile` (targets: `help` as default goal, `build-site`, `run-site`, `new-post`, `clean`, `preflight`). `run-site` runs `hugo server -D --navigateToChanged` and opens Safari after polling the port until the server responds.
-- `archetypes/default.md`: `draft: false` → `draft: true`, so new posts preview locally via `make run-site` but stay out of the production build until explicitly published. Verified end-to-end: a test draft produced 0 matches in the production build and 5 in the `-D` preview.
-- Deleted `static/CNAME` and cleared the GitHub Pages custom domain, so the site currently publishes to `https://nbrosnahan.github.io/AerieWebsite/` — this lets publishing be verified before the DNS cutover.
-- Rewrote `README.md` and `CLAUDE.md` — they had still described a 90s "under construction" splash page with Comic Sans, marquee, and a `worker-icon.html` partial, all removed back in commit 8c6eff0 and never documented. Both now describe the actual minimal blog and the `make`-based workflow. `CLAUDE.md`'s architecture table also dropped the `static/CNAME` row (file no longer exists) and the Deployment section now explains the cleared-custom-domain state and the cutover steps.
-- Cleared a stale `.git/index.lock` left over from an interrupted operation in April, which had been silently blocking git index writes.
-- Nothing in this session was deployed, pushed, or committed to a DNS provider — all changes are local to the working tree.
-- Configured Hugo URL parity with WordPress ahead of the content migration: `[permalinks]` for the `/:year/:month/:day/:slug/` post structure, `[permalinks.term]` for the singular `/tag/` and `/category/` segments, a `/who-am-i/` → `/about/` alias, and a new `content/photography.md` preserving `/photography/`. Verified against a probe post.
-- Fixed URL generation for the GitHub Pages project subpath: layouts passed leading-slash arguments to `relURL`/`absURL`, which Hugo treats as root-relative, so nav links, tag links, and RSS references would have 404'd at `https://nbrosnahan.github.io/AerieWebsite/`. Nav active-state checks were broken the same way (comparing `.RelPermalink` against hardcoded root paths). Verified correct at both the subpath and root baseURLs, so the cutover needs no further template changes.
+
+- Removed placeholder content: deleted `content/posts/beginnings.md`; cleared the placeholder body of
+  `content/about.md`. `content/posts/` is now empty, staged for a migration of 15 posts from brosnahan.org.
+- Rewrote `LICENSE`: copyright now Nick Brosnahan (was "Tumbling Potato"), reworded to be content-focused
+  (writing/posts/images plus templates and styles) rather than software-focused, dropped the software warranty/liability
+  boilerplate. Remains all-rights-reserved, deliberately not open source.
+- Bumped the Hugo version pin 0.157.0 → 0.164.0 in `.github/workflows/deploy.yml`; upgraded local Homebrew Hugo to
+  match.
+- Config: `languageCode = "en-us"` → `locale = "en-US"` in `hugo.toml` (the `languageCode` key was deprecated in Hugo
+  0.158.0; `locale` takes an RFC 5646 tag).
+- `layouts/_default/baseof.html`: `lang="{{ .Site.Language.Lang }}"` → `lang="{{ .Site.Language.Locale }}"`. `.Lang`
+  returns the language key (`en`) and ignored the locale entirely; verified the rendered output changed from
+  `<html lang=en>` to `<html lang=en-US>`.
+- Rebrand: `hugo.toml` title → "The Aerie", tagline → "The stairs are a feature", baseURL → `https://brosnahan.org/`,
+  meta description replaced (currently a generic placeholder pending real copy); `content/_index.md` title → "The
+  Aerie"; `layouts/partials/footer.html` copyright → "Nick Brosnahan".
+- Renamed the repo and directory `TPWebsite` → `AerieWebsite`; GitHub repo renamed (remote auto-updated),
+  `to-be-reviewed` topic removed. Project catalog entry renamed `tp-website.md` → `aerie-website.md` with its badly
+  stale "90s under-construction splash page" description rewritten, catalog index reordered alphabetically, and
+  `project-colors.zsh` regenerated (these live in the chezmoi repo, committed separately).
+- Added `Makefile` (targets: `help` as default goal, `build-site`, `run-site`, `new-post`, `clean`, `preflight`).
+  `run-site` runs `hugo server -D --navigateToChanged` and opens Safari after polling the port until the server
+  responds.
+- `archetypes/default.md`: `draft: false` → `draft: true`, so new posts preview locally via `make run-site` but stay out
+  of the production build until explicitly published. Verified end-to-end: a test draft produced 0 matches in the
+  production build and 5 in the `-D` preview.
+- Deleted `static/CNAME` and cleared the GitHub Pages custom domain, so the site currently publishes to
+  `https://nbrosnahan.github.io/AerieWebsite/` — this lets publishing be verified before the DNS cutover.
+- Rewrote `README.md` and `CLAUDE.md` — they had still described a 90s "under construction" splash page with Comic Sans,
+  marquee, and a `worker-icon.html` partial, all removed back in commit 8c6eff0 and never documented. Both now describe
+  the actual minimal blog and the `make`-based workflow. `CLAUDE.md`'s architecture table also dropped the
+  `static/CNAME` row (file no longer exists) and the Deployment section now explains the cleared-custom-domain state and
+  the cutover steps.
+- Cleared a stale `.git/index.lock` left over from an interrupted operation in April, which had been silently blocking
+  git index writes.
+- Nothing in this session was deployed, pushed, or committed to a DNS provider — all changes are local to the working
+  tree.
+- Configured Hugo URL parity with WordPress ahead of the content migration: `[permalinks]` for the
+  `/:year/:month/:day/:slug/` post structure, `[permalinks.term]` for the singular `/tag/` and `/category/` segments, a
+  `/who-am-i/` → `/about/` alias, and a new `content/photography.md` preserving `/photography/`. Verified against a
+  probe post.
+- Fixed URL generation for the GitHub Pages project subpath: layouts passed leading-slash arguments to
+  `relURL`/`absURL`, which Hugo treats as root-relative, so nav links, tag links, and RSS references would have 404'd at
+  `https://nbrosnahan.github.io/AerieWebsite/`. Nav active-state checks were broken the same way (comparing
+  `.RelPermalink` against hardcoded root paths). Verified correct at both the subpath and root baseURLs, so the cutover
+  needs no further template changes.
 
 **Decisions:**
-- Cleared the GitHub Pages custom domain deliberately, ahead of the content migration rather than after: brosnahan.org is currently a live WordPress 7.0.2 site with 15 posts on non-GitHub hosting, so cutting over DNS before the migration would take that site offline with nothing to replace it. Publishing to the default `nbrosnahan.github.io/AerieWebsite/` URL first lets the GitHub Pages pipeline be verified end-to-end before the cutover.
-- Switched `archetypes/default.md` to `draft: true` by default so the authoring loop (`make new-post` → `make run-site` → flip `draft: false` → push) has a safe default; new posts no longer accidentally ship live.
-- Outstanding for a future session: the WordPress→Hugo migration of the 15 existing posts from brosnahan.org, writing a real `hugo.toml` meta description (current one is a placeholder), and the DNS cutover itself (repoint brosnahan.org at GitHub Pages, restore `static/CNAME` with `brosnahan.org`, re-set the custom domain in repo Settings → Pages — both steps are required together, per the note now in `CLAUDE.md`).
-- Images migrate to Hugo-idiomatic paths rather than preserving the `wp-content/uploads/` tree; originals, not WordPress's resized derivatives.
+
+- Cleared the GitHub Pages custom domain deliberately, ahead of the content migration rather than after: brosnahan.org
+  is currently a live WordPress 7.0.2 site with 15 posts on non-GitHub hosting, so cutting over DNS before the migration
+  would take that site offline with nothing to replace it. Publishing to the default
+  `nbrosnahan.github.io/AerieWebsite/` URL first lets the GitHub Pages pipeline be verified end-to-end before the
+  cutover.
+- Switched `archetypes/default.md` to `draft: true` by default so the authoring loop (`make new-post` → `make run-site`
+  → flip `draft: false` → push) has a safe default; new posts no longer accidentally ship live.
+- Outstanding for a future session: the WordPress→Hugo migration of the 15 existing posts from brosnahan.org, writing a
+  real `hugo.toml` meta description (current one is a placeholder), and the DNS cutover itself (repoint brosnahan.org at
+  GitHub Pages, restore `static/CNAME` with `brosnahan.org`, re-set the custom domain in repo Settings → Pages — both
+  steps are required together, per the note now in `CLAUDE.md`).
+- Images migrate to Hugo-idiomatic paths rather than preserving the `wp-content/uploads/` tree; originals, not
+  WordPress's resized derivatives.
 - RSS stays at Hugo's `/index.xml` rather than reproducing WordPress's `/feed/`.
-- Date archives are dropped — Hugo has no config-level support, and per-month stub pages were judged not worth the perpetual maintenance for URLs with negligible inbound links.
+- Date archives are dropped — Hugo has no config-level support, and per-month stub pages were judged not worth the
+  perpetual maintenance for URLs with negligible inbound links.
 - The `__trashed` post is excluded from the migration (14 posts, not 15).
 
 ## 2026-07-18 — WordPress→Hugo content migration
 
-**Goal:** Migrate the live brosnahan.org WordPress content (posts, the about page, images) into Hugo, per the URL-parity and content decisions recorded in the previous session.
+**Goal:** Migrate the live brosnahan.org WordPress content (posts, the about page, images) into Hugo, per the URL-parity
+and content decisions recorded in the previous session.
 
 **Done:**
-- Wrote `scripts/migrate-wordpress.py` — stdlib-only, no third-party deps, idempotent/re-runnable. Fetches from the live WordPress REST API and writes `content/posts/<slug>.md`, `content/about.md` (body only), and `static/images/<basename>`.
-- Migrated 14 posts to `content/posts/<slug>.md`. `content/photography.md` was already migrated by hand in a prior session and was left untouched.
-- Migrated the body of WordPress page `who-am-i` (id 14) into `content/about.md`, preserving its existing frontmatter, including the load-bearing `aliases: ["/who-am-i/"]`.
-- Migrated 8 original images (full-res PNGs with alpha, JPEGs with intact iPhone EXIF — confirmed not the `.avif` derivatives) into `static/images/`.
-- Fixed two bugs the migration surfaced: a trailing-punctuation slug divergence (see Decisions) and adjacent `<em> </em>` + `<em>` spans in WordPress HTML that were converting to malformed markdown — the converter now merges adjacent `<em>` runs and lifts whitespace out of each span.
-- Verified: `make preflight` passes (79 pages); all 14 post URLs match the live WordPress `link` field exactly; all 22 in-use tags match `/tag/<slug>/`; `/who-am-i/` alias resolves to `/about/`; no `.avif`, `wp-content`, or raw HTML-entity leakage in `content/` or `public/`.
-- Updated `CLAUDE.md`'s Content Migration section from in-progress to completed-state, and added `scripts/migrate-wordpress.py` and `static/images/` to the architecture table.
+
+- Wrote `scripts/migrate-wordpress.py` — stdlib-only, no third-party deps, idempotent/re-runnable. Fetches from the live
+  WordPress REST API and writes `content/posts/<slug>.md`, `content/about.md` (body only), and
+  `static/images/<basename>`.
+- Migrated 14 posts to `content/posts/<slug>.md`. `content/photography.md` was already migrated by hand in a prior
+  session and was left untouched.
+- Migrated the body of WordPress page `who-am-i` (id 14) into `content/about.md`, preserving its existing frontmatter,
+  including the load-bearing `aliases: ["/who-am-i/"]`.
+- Migrated 8 original images (full-res PNGs with alpha, JPEGs with intact iPhone EXIF — confirmed not the `.avif`
+  derivatives) into `static/images/`.
+- Fixed two bugs the migration surfaced: a trailing-punctuation slug divergence (see Decisions) and adjacent
+  `<em> </em>` + `<em>` spans in WordPress HTML that were converting to malformed markdown — the converter now merges
+  adjacent `<em>` runs and lifts whitespace out of each span.
+- Verified: `make preflight` passes (79 pages); all 14 post URLs match the live WordPress `link` field exactly; all 22
+  in-use tags match `/tag/<slug>/`; `/who-am-i/` alias resolves to `/about/`; no `.avif`, `wp-content`, or raw
+  HTML-entity leakage in `content/` or `public/`.
+- Updated `CLAUDE.md`'s Content Migration section from in-progress to completed-state, and added
+  `scripts/migrate-wordpress.py` and `static/images/` to the architecture table.
 
 **Decisions:**
-- Every post's frontmatter now carries an explicit `slug:` pinned to the WordPress slug, not left to Hugo's title-derived fallback. Cause: the SB 63 post's title ends in a literal period, and Hugo's slug sanitizer (unlike WordPress's `sanitize_title()`) doesn't strip trailing punctuation, which silently broke URL parity for that post until `slug:` was added. Recorded as a durable note in `CLAUDE.md` since a future title edit could accidentally remove the field.
-- `superman-sneak-peek`'s YouTube iframe was converted to Hugo's built-in `{{< youtube >}}` shortcode (figures likewise use `{{< figure >}}`), avoiding the need for `markup.goldmark.renderer.unsafe`. This corrects a prior `CLAUDE.md` claim that the source content had "no embeds," which was wrong.
-- Images went to a flat `static/images/` rather than page bundles — only 3 posts carry images (8 total), so a flat tree was cheap and keeps `content/posts/` uniform.
-- `uncategorized` (a WordPress default placeholder) was dropped as a real category, with the owner's explicit sign-off that `/category/uncategorized/` will 404 after the DNS cutover.
-- **Reversed, later in the day:** the owner asked for `uncategorized` restored, temporarily, preferring URL parity with the live site (`/category/uncategorized/` stays live) over dropping a WordPress default placeholder. Implemented as a single-lever, trivially-reversible change: `hello-sf` and `what-topics` now carry `categories: ["Uncategorized"]`, and `scripts/migrate-wordpress.py`'s `DROP_CATEGORY_SLUGS` constant is empty by default (was `{"uncategorized"}`) so a future re-run doesn't silently diverge from what's on disk.
-- Outstanding for a future session: hand-writing real post `description:` values (current ones are WordPress's truncated 55-word auto-excerpts feeding `<meta name="description">`), and the DNS cutover itself (still pending per the prior session's entry).
-- All 14 posts' `description:` values were hand-rewritten in this session, closing the item above: each is kept under 160 characters, ends on a complete sentence, and contains no bare URLs. The rewrite also fixed two source-level defects surfaced along the way: `svbcs-2025-el-camino-real-ride`'s WordPress excerpt read "El Camino RealRide" because the excerpt generator joined text across a hard line break in the body, and `sf-is-still-mostly-empty-above-40`'s description was previously a bare truncated URL.
+
+- Every post's frontmatter now carries an explicit `slug:` pinned to the WordPress slug, not left to Hugo's
+  title-derived fallback. Cause: the SB 63 post's title ends in a literal period, and Hugo's slug sanitizer (unlike
+  WordPress's `sanitize_title()`) doesn't strip trailing punctuation, which silently broke URL parity for that post
+  until `slug:` was added. Recorded as a durable note in `CLAUDE.md` since a future title edit could accidentally remove
+  the field.
+- `superman-sneak-peek`'s YouTube iframe was converted to Hugo's built-in `{{< youtube >}}` shortcode (figures likewise
+  use `{{< figure >}}`), avoiding the need for `markup.goldmark.renderer.unsafe`. This corrects a prior `CLAUDE.md`
+  claim that the source content had "no embeds," which was wrong.
+- Images went to a flat `static/images/` rather than page bundles — only 3 posts carry images (8 total), so a flat tree
+  was cheap and keeps `content/posts/` uniform.
+- `uncategorized` (a WordPress default placeholder) was dropped as a real category, with the owner's explicit sign-off
+  that `/category/uncategorized/` will 404 after the DNS cutover.
+- **Reversed, later in the day:** the owner asked for `uncategorized` restored, temporarily, preferring URL parity with
+  the live site (`/category/uncategorized/` stays live) over dropping a WordPress default placeholder. Implemented as a
+  single-lever, trivially-reversible change: `hello-sf` and `what-topics` now carry `categories: ["Uncategorized"]`, and
+  `scripts/migrate-wordpress.py`'s `DROP_CATEGORY_SLUGS` constant is empty by default (was `{"uncategorized"}`) so a
+  future re-run doesn't silently diverge from what's on disk.
+- Outstanding for a future session: hand-writing real post `description:` values (current ones are WordPress's truncated
+  55-word auto-excerpts feeding `<meta name="description">`), and the DNS cutover itself (still pending per the prior
+  session's entry).
+- All 14 posts' `description:` values were hand-rewritten in this session, closing the item above: each is kept under
+  160 characters, ends on a complete sentence, and contains no bare URLs. The rewrite also fixed two source-level
+  defects surfaced along the way: `svbcs-2025-el-camino-real-ride`'s WordPress excerpt read "El Camino RealRide" because
+  the excerpt generator joined text across a hard line break in the body, and `sf-is-still-mostly-empty-above-40`'s
+  description was previously a bare truncated URL.
 
 ## 2026-07-18 — Drop WordPress-era conventions for Hugo defaults
 
-**Goal:** Strip every WordPress-parity convention from the site and adopt Hugo defaults, accepting the resulting URL breakage. No post text, image, or hand-written description may be lost or altered in the process.
+**Goal:** Strip every WordPress-parity convention from the site and adopt Hugo defaults, accepting the resulting URL
+breakage. No post text, image, or hand-written description may be lost or altered in the process.
 
 **Done:**
-- `hugo.toml`: deleted the `[permalinks]` block (`/:year/:month/:day/:slug/`), the `[permalinks.term]` block (singular `/tag/` and `/category/`), and the `capitalizeListTitles = false` override with its explanatory comment. URLs are now Hugo defaults: `/posts/<slug>/`, `/tags/<slug>/`, `/categories/<slug>/`.
-- Removed the explicit `slug:` frontmatter field from all 14 posts. Default permalinks derive the slug from the filename, and every filename already equalled the desired slug, so all 14 post slugs are unchanged.
-- Normalized all 22 tag names to proper display form (`cycling` → `Cycling`, `svbc` → `SVBC`, `door lock` → `Door Lock`, `ecrr2025` → `ECRR2025`, …). Verified every normalized name urlizes to its previous slug, so no tag URL moved. Categories were already proper-cased and were left alone.
-- Converted the two image-bearing posts to page bundles: `cities-moving` (3 images) and `i-got-tired-of-changing-batteries` (5 images) became `content/posts/<slug>/index.md` with their images alongside, moved via `git mv`. Figure shortcodes rewritten from `src="/images/<file>"` to bundle-relative `src="<file>"`; captions and alt text untouched. `static/` no longer exists.
+
+- `hugo.toml`: deleted the `[permalinks]` block (`/:year/:month/:day/:slug/`), the `[permalinks.term]` block (singular
+  `/tag/` and `/category/`), and the `capitalizeListTitles = false` override with its explanatory comment. URLs are now
+  Hugo defaults: `/posts/<slug>/`, `/tags/<slug>/`, `/categories/<slug>/`.
+- Removed the explicit `slug:` frontmatter field from all 14 posts. Default permalinks derive the slug from the
+  filename, and every filename already equalled the desired slug, so all 14 post slugs are unchanged.
+- Normalized all 22 tag names to proper display form (`cycling` → `Cycling`, `svbc` → `SVBC`, `door lock` → `Door Lock`,
+  `ecrr2025` → `ECRR2025`, …). Verified every normalized name urlizes to its previous slug, so no tag URL moved.
+  Categories were already proper-cased and were left alone.
+- Converted the two image-bearing posts to page bundles: `cities-moving` (3 images) and
+  `i-got-tired-of-changing-batteries` (5 images) became `content/posts/<slug>/index.md` with their images alongside,
+  moved via `git mv`. Figure shortcodes rewritten from `src="/images/<file>"` to bundle-relative `src="<file>"`;
+  captions and alt text untouched. `static/` no longer exists.
 - Removed `aliases: ["/who-am-i/"]` from `content/about.md`.
-- Marked `scripts/migrate-wordpress.py` HISTORICAL — DO NOT RE-RUN with a banner at the top of its module docstring. Its logic is otherwise unmodified.
-- Simplified `layouts/partials/header.html`'s Tags active-state check to the `tags/` prefix alone (the `tag/` branch existed only for the singular term URLs).
-- Rewrote `CLAUDE.md`'s Content Migration section: the URL-parity table is replaced by a Hugo-defaults URL table plus an explicit note that parity was abandoned and which old URLs now 404; the `slug:` warning is replaced by a statement that slugs come from filenames (so the trailing-punctuation hazard no longer exists) and that renaming the file is how to change a URL; the architecture table's `static/images/` row became a page-bundles row; the migration script row and the `--force`/`uncategorized` bullets now reflect the script being historical. Added a note that restoring the custom domain means recreating `static/` for `CNAME`.
+- Marked `scripts/migrate-wordpress.py` HISTORICAL — DO NOT RE-RUN with a banner at the top of its module docstring. Its
+  logic is otherwise unmodified.
+- Simplified `layouts/partials/header.html`'s Tags active-state check to the `tags/` prefix alone (the `tag/` branch
+  existed only for the singular term URLs).
+- Rewrote `CLAUDE.md`'s Content Migration section: the URL-parity table is replaced by a Hugo-defaults URL table plus an
+  explicit note that parity was abandoned and which old URLs now 404; the `slug:` warning is replaced by a statement
+  that slugs come from filenames (so the trailing-punctuation hazard no longer exists) and that renaming the file is how
+  to change a URL; the architecture table's `static/images/` row became a page-bundles row; the migration script row and
+  the `--force`/`uncategorized` bullets now reflect the script being historical. Added a note that restoring the custom
+  domain means recreating `static/` for `CNAME`.
 
 **Verification:**
+
 - `make preflight` passes (81 pages, 8 non-page files, 0 aliases, 0 static files).
-- No content lost: rendered body word counts are identical for all 14 posts against a build of `a70328c`, and a word-by-word comparison shows the *only* differences anywhere are the intended tag-label capitalizations. All 14 `description:` values are byte-identical (matching md5 over the full set).
+- No content lost: rendered body word counts are identical for all 14 posts against a build of `a70328c`, and a
+  word-by-word comparison shows the *only* differences anywhere are the intended tag-label capitalizations. All 14
+  `description:` values are byte-identical (matching md5 over the full set).
 - All 22 tag slugs and 6 category slugs are unchanged; all 14 post slugs match their previous filenames.
-- Term page `<h1>`s render correctly at the default `capitalizeListTitles`: `SVBC`, `ECRR2025`, `Door Lock`, `AI`, `UPS`, `DIY`, `SF`, `IoT` all survive intact.
+- Term page `<h1>`s render correctly at the default `capitalizeListTitles`: `SVBC`, `ECRR2025`, `Door Lock`, `AI`,
+  `UPS`, `DIY`, `SF`, `IoT` all survive intact.
 - All 8 images present in a bundle and returning 200; `static/images/` gone with no image orphaned.
-- Crawled all 59 internal URLs from `/` on a root-baseURL server: zero 404s. `/who-am-i/`, `/2025/05/31/cities-moving/`, and `/tag/svbc/` correctly 404. Nav highlights on `/tags/` and `/tags/<slug>/` only.
+- Crawled all 59 internal URLs from `/` on a root-baseURL server: zero 404s. `/who-am-i/`, `/2025/05/31/cities-moving/`,
+  and `/tag/svbc/` correctly 404. Nav highlights on `/tags/` and `/tags/<slug>/` only.
 
 **Decisions:**
-- **Normalize taxonomy display names rather than keep `capitalizeListTitles = false`.** The override existed solely so lowercase WordPress-era tag names would render as authored. Authoring the names in display form instead removes the config dependency entirely and is strictly better presentation. This works because Hugo's title caser only uppercases each word's first rune and leaves the remainder alone, so acronyms like `SVBC` and `ECRR2025` are not mangled into `Svbc`. The tradeoff: new tags must now be authored in display form, since a lowercase tag will render lowercase.
-- **Archive the migration script rather than update or delete it.** It still documents exactly what was pulled from WordPress and how, which is worth keeping, but it now emits conventions the site has abandoned and would clobber hand-written descriptions. A banner is the cheapest durable guard; updating it to match the new conventions would be maintaining a script that must never run again.
-- **Drop the `/who-am-i/` alias** and accept the 404, consistent with abandoning parity everywhere else. Keeping one alias while dated post permalinks and singular term URLs all break would be inconsistent for negligible benefit.
+
+- **Normalize taxonomy display names rather than keep `capitalizeListTitles = false`.** The override existed solely so
+  lowercase WordPress-era tag names would render as authored. Authoring the names in display form instead removes the
+  config dependency entirely and is strictly better presentation. This works because Hugo's title caser only uppercases
+  each word's first rune and leaves the remainder alone, so acronyms like `SVBC` and `ECRR2025` are not mangled into
+  `Svbc`. The tradeoff: new tags must now be authored in display form, since a lowercase tag will render lowercase.
+- **Archive the migration script rather than update or delete it.** It still documents exactly what was pulled from
+  WordPress and how, which is worth keeping, but it now emits conventions the site has abandoned and would clobber
+  hand-written descriptions. A banner is the cheapest durable guard; updating it to match the new conventions would be
+  maintaining a script that must never run again.
+- **Drop the `/who-am-i/` alias** and accept the 404, consistent with abandoning parity everywhere else. Keeping one
+  alias while dated post permalinks and singular term URLs all break would be inconsistent for negligible benefit.
 
 ## 2026-07-18 — Adopt the PaperMod theme; dedupe favicon tags; refresh CLAUDE.md
 
-**Goal:** Replace the hand-built layout (`layouts/_default/*`, `layouts/partials/*`, `assets/css/main.css`) with the PaperMod theme, then clean up the duplicate favicon `<link>` tags the switch introduced and bring `CLAUDE.md` current with the resulting architecture.
+**Goal:** Replace the hand-built layout (`layouts/_default/*`, `layouts/partials/*`, `assets/css/main.css`) with the
+PaperMod theme, then clean up the duplicate favicon `<link>` tags the switch introduced and bring `CLAUDE.md` current
+with the resulting architecture.
 
 **Done:**
-- Deleted the hand-built templates and inlined stylesheet (`assets/css/main.css`, `layouts/_default/baseof.html`, `layouts/_default/list.html`, `layouts/_default/single.html`, `layouts/_default/terms.html`, `layouts/index.html`, `layouts/partials/header.html`, `layouts/partials/footer.html`); the site now renders entirely through the PaperMod theme module.
-- Added PaperMod as a **Hugo Module** (`go.mod`/`go.sum`, `[[module.imports]]` in `hugo.toml`), configured via `[params]` (theme, `homeInfoParams`, `params.assets.*` favicon paths, menu, RSS entry — PaperMod doesn't surface a visible RSS link on its own).
-- Added `layouts/_partials/extend_head.html`, PaperMod's supported `<head>` extension point, to publish the favicon/apple-touch-icon PNG derivatives from `assets/images/aerie-icon.webp` at the paths `params.assets.*` names.
-- **Fixed a duplicate-favicon-tag bug from the theme switch:** the built `public/index.html` was emitting eight icon `<link>` tags — five from PaperMod's own `head.html` (driven by `params.assets.*`) plus three more from `extend_head.html`, with the 32x32 and apple-touch-icon hrefs each appearing twice. `extend_head.html` now only *publishes* the derivatives (`resources.Copy` + `.Publish`) and emits no `<link>` tags of its own, letting the theme own all icon tags — five total (icon, 16x16, 32x32, apple-touch-icon, mask-icon), no duplicate hrefs from separate sources. Also dropped the 192x192 derivative it used to publish, since nothing references it (Android home-screen icons are normally declared via a web manifest this site doesn't ship).
-- Rewrote `CLAUDE.md`'s "What This Is" line and Architecture table for the theme-module reality (removed rows for the deleted layout files and `assets/css/main.css`; added rows for `go.mod`/`go.sum`, `hugo.toml`'s `[module.imports]`, and `extend_head.html`), added a "Theme Management" section (module-pin rationale, update command, CI's Go requirement), and a note that theme customization goes through PaperMod's extension points, never by forking theme files. Updated the stale favicon-generation bullet under Content Migration to point at `extend_head.html` instead of the deleted `baseof.html` and to describe the current three-derivative, tag-free publishing behavior.
+
+- Deleted the hand-built templates and inlined stylesheet (`assets/css/main.css`, `layouts/_default/baseof.html`,
+  `layouts/_default/list.html`, `layouts/_default/single.html`, `layouts/_default/terms.html`, `layouts/index.html`,
+  `layouts/partials/header.html`, `layouts/partials/footer.html`); the site now renders entirely through the PaperMod
+  theme module.
+- Added PaperMod as a **Hugo Module** (`go.mod`/`go.sum`, `[[module.imports]]` in `hugo.toml`), configured via
+  `[params]` (theme, `homeInfoParams`, `params.assets.*` favicon paths, menu, RSS entry — PaperMod doesn't surface a
+  visible RSS link on its own).
+- Added `layouts/_partials/extend_head.html`, PaperMod's supported `<head>` extension point, to publish the
+  favicon/apple-touch-icon PNG derivatives from `assets/images/aerie-icon.webp` at the paths `params.assets.*` names.
+- **Fixed a duplicate-favicon-tag bug from the theme switch:** the built `public/index.html` was emitting eight icon
+  `<link>` tags — five from PaperMod's own `head.html` (driven by `params.assets.*`) plus three more from
+  `extend_head.html`, with the 32x32 and apple-touch-icon hrefs each appearing twice. `extend_head.html` now only
+  *publishes* the derivatives (`resources.Copy` + `.Publish`) and emits no `<link>` tags of its own, letting the theme
+  own all icon tags — five total (icon, 16x16, 32x32, apple-touch-icon, mask-icon), no duplicate hrefs from separate
+  sources. Also dropped the 192x192 derivative it used to publish, since nothing references it (Android home-screen
+  icons are normally declared via a web manifest this site doesn't ship).
+- Rewrote `CLAUDE.md`'s "What This Is" line and Architecture table for the theme-module reality (removed rows for the
+  deleted layout files and `assets/css/main.css`; added rows for `go.mod`/`go.sum`, `hugo.toml`'s `[module.imports]`,
+  and `extend_head.html`), added a "Theme Management" section (module-pin rationale, update command, CI's Go
+  requirement), and a note that theme customization goes through PaperMod's extension points, never by forking theme
+  files. Updated the stale favicon-generation bullet under Content Migration to point at `extend_head.html` instead of
+  the deleted `baseof.html` and to describe the current three-derivative, tag-free publishing behavior.
 
 **Verification:**
+
 - `make preflight` passes.
-- Built `public/index.html` has exactly five icon-related `<link>` tags (icon, 16x16, 32x32, apple-touch-icon, mask-icon), each href resolving to a real file under `public/`; confirmed `favicon-16x16.png`, `favicon-32x32.png`, and `apple-touch-icon.png` all serve 200 from a local server rooted at `public/`.
+- Built `public/index.html` has exactly five icon-related `<link>` tags (icon, 16x16, 32x32, apple-touch-icon,
+  mask-icon), each href resolving to a real file under `public/`; confirmed `favicon-16x16.png`, `favicon-32x32.png`,
+  and `apple-touch-icon.png` all serve 200 from a local server rooted at `public/`.
 
 **Decisions:**
-- **Pinned PaperMod to an exact upstream commit, not a release tag.** PaperMod's newest tagged release (v8.0, Sep 2024) predates Hugo v0.146's template-system rewrite and fails to build on Hugo 0.164 (`partial ... _funcs/get-page-images not found`). The fix landed on `master` but has never been tagged, so `go.mod` pins that commit directly; re-pin to a real tag once upstream cuts v9.0.
-- **CI now requires Go** (`actions/setup-go` added to `.github/workflows/deploy.yml`) because Hugo Modules resolve at build time via `go`; removing that step would break the deploy even though the build succeeds locally (Go already on `PATH` there).
-- Outstanding for a future session: category chips are not yet rendered on individual posts (PaperMod supports this but it isn't wired up), and PaperMod's built-in search page is not yet enabled.
+
+- **Pinned PaperMod to an exact upstream commit, not a release tag.** PaperMod's newest tagged release (v8.0, Sep 2024)
+  predates Hugo v0.146's template-system rewrite and fails to build on Hugo 0.164
+  (`partial ... _funcs/get-page-images not found`). The fix landed on `master` but has never been tagged, so `go.mod`
+  pins that commit directly; re-pin to a real tag once upstream cuts v9.0.
+- **CI now requires Go** (`actions/setup-go` added to `.github/workflows/deploy.yml`) because Hugo Modules resolve at
+  build time via `go`; removing that step would break the deploy even though the build succeeds locally (Go already on
+  `PATH` there).
+- Outstanding for a future session: category chips are not yet rendered on individual posts (PaperMod supports this but
+  it isn't wired up), and PaperMod's built-in search page is not yet enabled.
 
 ## 2026-07-18 — Replace PaperMod with Congo, pinned to release tag v2.14.0
 
-**Goal:** Move the site off PaperMod and onto [Congo](https://github.com/jpanther/congo) `v2.14.0`, so the theme is pinned to a real semver release tag instead of a bare upstream commit, with zero URLs lost.
+**Goal:** Move the site off PaperMod and onto [Congo](https://github.com/jpanther/congo) `v2.14.0`, so the theme is
+pinned to a real semver release tag instead of a bare upstream commit, with zero URLs lost.
 
 **Done:**
-- Swapped the Hugo Module: `go.mod`/`go.sum` now contain only `github.com/jpanther/congo/v2 v2.14.0` (a real tag, not a pseudo-version), with no PaperMod remnants after `hugo mod tidy`.
-- **Migrated the configuration to `config/_default/`**, which is the layout Congo expects; the root `hugo.toml` is gone. Split across `hugo.toml` (baseURL, `[taxonomies]`, `[pagination]` 20, the module import), `languages.en.toml` (title, `params.description`, `params.author.headline`), `params.toml` (Congo's theme parameters), and `menus.en.toml` (the main menu). Every parameter name was taken from Congo's own `config/_default/*.toml` and `exampleSite/content/docs/` at the v2.14.0 tag rather than ported by analogy from PaperMod — Congo's keys are entirely its own and wrong ones fail silently.
-- Replaced `layouts/_partials/extend_head.html` with `layouts/_partials/favicons.html`. Congo's `head.html` checks `templates.Exists "_partials/favicons.html"` and, when present, uses it *instead of* its own icon block, so this partial now both derives the 16x16/32x32/180x180 PNGs from `assets/images/aerie-icon.webp` and emits their `<link>` tags — the opposite division of labor from the PaperMod setup, where the theme owned the tags and the partial only published files.
-- **Excluded Congo's `static/` via an explicit module mount list.** The theme ships seven blank placeholder icons at exactly the filenames this site publishes to, including a `favicon.ico` — which browsers request implicitly, with no `<link>` tag needed, so a blank one would really have been served. The site's generated PNGs already won the three colliding filenames, but the leftover `favicon.ico`, `site.webmanifest`, and two `android-chrome-*.png` files were unreferenced cruft. `Static files` in the build report went 7 → 0.
-- Carried over site identity (title "The Aerie", tagline, long description), the five menu entries in order, `tag`/`category` taxonomies, and 20-per-page pagination. RSS keeps a manual menu entry: Congo emits the feed only as a `<head>` `rel="alternate"` discovery link and renders no visible feed link, same as PaperMod.
-- Updated `CLAUDE.md` (every PaperMod reference → Congo; new "Configuration layout" section documenting `config/_default/` and its three silent-failure traps; the pin rationale rewritten around the release tag, including a "do not re-litigate" note on why PaperMod was rejected; update command now `hugo mod get -u github.com/jpanther/congo/v2`) and the stale `hugo.toml` path in the `Makefile`'s `run-site` comment.
+
+- Swapped the Hugo Module: `go.mod`/`go.sum` now contain only `github.com/jpanther/congo/v2 v2.14.0` (a real tag, not a
+  pseudo-version), with no PaperMod remnants after `hugo mod tidy`.
+- **Migrated the configuration to `config/_default/`**, which is the layout Congo expects; the root `hugo.toml` is gone.
+  Split across `hugo.toml` (baseURL, `[taxonomies]`, `[pagination]` 20, the module import), `languages.en.toml` (title,
+  `params.description`, `params.author.headline`), `params.toml` (Congo's theme parameters), and `menus.en.toml` (the
+  main menu). Every parameter name was taken from Congo's own `config/_default/*.toml` and `exampleSite/content/docs/`
+  at the v2.14.0 tag rather than ported by analogy from PaperMod — Congo's keys are entirely its own and wrong ones fail
+  silently.
+- Replaced `layouts/_partials/extend_head.html` with `layouts/_partials/favicons.html`. Congo's `head.html` checks
+  `templates.Exists "_partials/favicons.html"` and, when present, uses it *instead of* its own icon block, so this
+  partial now both derives the 16x16/32x32/180x180 PNGs from `assets/images/aerie-icon.webp` and emits their `<link>`
+  tags — the opposite division of labor from the PaperMod setup, where the theme owned the tags and the partial only
+  published files.
+- **Excluded Congo's `static/` via an explicit module mount list.** The theme ships seven blank placeholder icons at
+  exactly the filenames this site publishes to, including a `favicon.ico` — which browsers request implicitly, with no
+  `<link>` tag needed, so a blank one would really have been served. The site's generated PNGs already won the three
+  colliding filenames, but the leftover `favicon.ico`, `site.webmanifest`, and two `android-chrome-*.png` files were
+  unreferenced cruft. `Static files` in the build report went 7 → 0.
+- Carried over site identity (title "The Aerie", tagline, long description), the five menu entries in order,
+  `tag`/`category` taxonomies, and 20-per-page pagination. RSS keeps a manual menu entry: Congo emits the feed only as a
+  `<head>` `rel="alternate"` discovery link and renders no visible feed link, same as PaperMod.
+- Updated `CLAUDE.md` (every PaperMod reference → Congo; new "Configuration layout" section documenting
+  `config/_default/` and its three silent-failure traps; the pin rationale rewritten around the release tag, including a
+  "do not re-litigate" note on why PaperMod was rejected; update command now
+  `hugo mod get -u github.com/jpanther/congo/v2`) and the stale `hugo.toml` path in the `Makefile`'s `run-site` comment.
 
 **Verification:**
-- `make preflight` passes with **zero deprecation warnings** — PaperMod's two (`.Language.LanguageDirection`, `.Language.LanguageCode`) are gone, and an initial pair of self-inflicted ones from using the deprecated `languageCode`/`languageName` config keys was fixed by switching to Congo's `locale`/`label`.
-- **Zero URLs lost** against a build of `9295f15`: all 48 baseline URLs still present (14 posts, 22 tags, 6 categories, `/about/`, `/photography/`, and the four index pages). The 31 additions are 30 `/page/1/` pagination aliases and `/404.html`.
-- All 14 post bodies render **textually identical** to the baseline (extracted from the content wrapper and normalized; 14/14 exact match). All 14 hand-written `description:` values reach `<meta name="description">`.
-- All 8 page-bundle images resolve: 62 referenced image URLs, 0 missing on disk. Congo's render hook expands each source image into a responsive `<picture>` with original-format and WebP derivatives. The `superman-sneak-peek` YouTube embed still renders an `<iframe>` (privacy-enhanced `youtube.com/embed/`).
-- Exactly three favicon `<link>` tags, no duplicate hrefs, each resolving to a real file at the correct pixel dimensions (16x16, 32x32, 180x180) and confirmed by md5 to be the Aerie renders rather than Congo's placeholders.
-- Menu renders all five entries in order with correct subpath-prefixed hrefs; none of Congo's own default menu entries (Blog/Categories/search/locale) leak through the config merge.
+
+- `make preflight` passes with **zero deprecation warnings** — PaperMod's two (`.Language.LanguageDirection`,
+  `.Language.LanguageCode`) are gone, and an initial pair of self-inflicted ones from using the deprecated
+  `languageCode`/`languageName` config keys was fixed by switching to Congo's `locale`/`label`.
+- **Zero URLs lost** against a build of `9295f15`: all 48 baseline URLs still present (14 posts, 22 tags, 6 categories,
+  `/about/`, `/photography/`, and the four index pages). The 31 additions are 30 `/page/1/` pagination aliases and
+  `/404.html`.
+- All 14 post bodies render **textually identical** to the baseline (extracted from the content wrapper and normalized;
+  14/14 exact match). All 14 hand-written `description:` values reach `<meta name="description">`.
+- All 8 page-bundle images resolve: 62 referenced image URLs, 0 missing on disk. Congo's render hook expands each source
+  image into a responsive `<picture>` with original-format and WebP derivatives. The `superman-sneak-peek` YouTube embed
+  still renders an `<iframe>` (privacy-enhanced `youtube.com/embed/`).
+- Exactly three favicon `<link>` tags, no duplicate hrefs, each resolving to a real file at the correct pixel dimensions
+  (16x16, 32x32, 180x180) and confirmed by md5 to be the Aerie renders rather than Congo's placeholders.
+- Menu renders all five entries in order with correct subpath-prefixed hrefs; none of Congo's own default menu entries
+  (Blog/Categories/search/locale) leak through the config merge.
 - The tagline renders as an `<h2>` in the page body, not only in `<title>`.
-- Crawled all 95 internal URLs from `/` on a root-baseURL server (port 1324): **zero non-200 responses**. Server killed afterward and confirmed dead.
-- CI simulated with a cleaned module cache (`hugo mod clean --all` plus fresh `HUGO_CACHEDIR`/`GOMODCACHE`): `hugo --minify --baseURL …` re-downloads the module and builds successfully.
+- Crawled all 95 internal URLs from `/` on a root-baseURL server (port 1324): **zero non-200 responses**. Server killed
+  afterward and confirmed dead.
+- CI simulated with a cleaned module cache (`hugo mod clean --all` plus fresh `HUGO_CACHEDIR`/`GOMODCACHE`):
+  `hugo --minify --baseURL …` re-downloads the module and builds successfully.
 
 **Decisions:**
-- **Pin to a release tag, not a commit — this is the whole point of the switch.** PaperMod's newest release (v8.0) fails to build on Hugo 0.164 and its tags aren't valid semver, so it could only ever be pinned to a bare `master` commit. Congo v2.14.0 is a proper semver tag that builds clean on 0.164 with an active upstream. `CLAUDE.md` records this as settled so it isn't reopened later.
-- **Surface the tagline via Congo's `profile` homepage layout.** Congo has no `tagline` parameter; the profile layout renders `params.author.headline` as an `<h2>` beneath the site title, which is the closest equivalent to PaperMod's `homeInfoParams` and required no content edits. `params.author.name` is left unset so the `<h1>` falls back to the site title, and `article.showAuthor = false` prevents that from producing an empty byline on posts.
-- **Set the site title in `languages.en.toml`, not `hugo.toml`.** Congo's bundled language config sets `title = "Congo"`, and a language-level title outranks a site-level one — putting the title in `hugo.toml` would have silently rendered the site as "Congo".
-- **Enumerate the theme's module mounts to drop `static/`** rather than shipping a competing `static/favicon.ico`. This keeps `assets/images/aerie-icon.webp` as the single icon source with everything derived at build time, instead of checking in a second binary master. The cost is that declaring mounts replaces *all* of a module's defaults, so the list is coupled to the theme's directory layout; `CLAUDE.md` flags it as something to re-check on every pin bump.
-- Outstanding for a future session: Congo's built-in search (`enableSearch`) is off — enabling it needs a `search` menu entry and the JSON output format; the `[footer] showThemeAttribution` default is left on; and no `params.author.links` are configured, so the homepage profile block renders no social icons.
+
+- **Pin to a release tag, not a commit — this is the whole point of the switch.** PaperMod's newest release (v8.0) fails
+  to build on Hugo 0.164 and its tags aren't valid semver, so it could only ever be pinned to a bare `master` commit.
+  Congo v2.14.0 is a proper semver tag that builds clean on 0.164 with an active upstream. `CLAUDE.md` records this as
+  settled so it isn't reopened later.
+- **Surface the tagline via Congo's `profile` homepage layout.** Congo has no `tagline` parameter; the profile layout
+  renders `params.author.headline` as an `<h2>` beneath the site title, which is the closest equivalent to PaperMod's
+  `homeInfoParams` and required no content edits. `params.author.name` is left unset so the `<h1>` falls back to the
+  site title, and `article.showAuthor = false` prevents that from producing an empty byline on posts.
+- **Set the site title in `languages.en.toml`, not `hugo.toml`.** Congo's bundled language config sets
+  `title = "Congo"`, and a language-level title outranks a site-level one — putting the title in `hugo.toml` would have
+  silently rendered the site as "Congo".
+- **Enumerate the theme's module mounts to drop `static/`** rather than shipping a competing `static/favicon.ico`. This
+  keeps `assets/images/aerie-icon.webp` as the single icon source with everything derived at build time, instead of
+  checking in a second binary master. The cost is that declaring mounts replaces *all* of a module's defaults, so the
+  list is coupled to the theme's directory layout; `CLAUDE.md` flags it as something to re-check on every pin bump.
+- Outstanding for a future session: Congo's built-in search (`enableSearch`) is off — enabling it needs a `search` menu
+  entry and the JSON output format; the `[footer] showThemeAttribution` default is left on; and no `params.author.links`
+  are configured, so the homepage profile block renders no social icons.
 
 ## 2026-07-19 — Hugo-convention audit fixes; robots.txt AI-crawler policy
 
-**Goal:** Fix a batch of small Hugo/Congo convention issues surfaced by an audit, and add a robots.txt policy governing AI crawlers.
+**Goal:** Fix a batch of small Hugo/Congo convention issues surfaced by an audit, and add a robots.txt policy governing
+AI crawlers.
 
 **Done:**
-- Fixed a "1 January 0001" date bug on `/about/`: Congo's `[article] showDate = true` applies to all single pages, and `content/about.md` had no `date:` frontmatter, so it fell back to Hugo's zero-value date. Added `date:` (feeds the sitemap's `<lastmod>`) plus `showDate: false` (hides the visible date on what's a timeless page, without touching the site-wide `[article]` default).
-- Removed the redundant `layout: "single"` frontmatter from `content/about.md` and `content/photography.md` — Hugo already selects the `single` layout for regular pages by default, so the field did nothing.
-- Fixed `go.mod`: dropped an incorrect `// indirect` marker on the Congo require. It's imported directly via `[[module.imports]]` in `hugo.toml`, not pulled in transitively by another dependency.
-- Added `layouts/robots.txt` (new Congo override, at the theme's own relative path) and `enableRobotsTXT = true` in `config/_default/hugo.toml` to activate it — the setting is required or Hugo renders no robots.txt regardless of the template's presence. Policy: block 18 known AI/LLM training crawlers as one `Disallow: /` group, while explicitly leaving retrieval and AI-search crawlers (`ChatGPT-User`, `Claude-User`, `Perplexity-User`, `OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot`, etc.) unrestricted, since those cite and link back rather than training on the content. Includes a Cloudflare/IETF-draft Content Signals Policy comment line (`Content-Signal: search=yes, ai-input=yes, ai-train=no`). Deprecated tokens `anthropic-ai`, `Claude-Web`, and `cohere-ai` are deliberately excluded and documented inline as superseded, so they don't get "helpfully" re-added later.
-- Corrected three stale comments left over from the PaperMod-era and hand-built-layout eras: `README.md` still said the site was hand-built with no theme; `.github/workflows/deploy.yml` attributed its Go setup step to PaperMod instead of Congo; the `Makefile`'s `run-site` comment referenced a project-subpath baseURL that no longer applies now that the site publishes to the custom domain.
-- `CLAUDE.md` updated to match: a new architecture-table row for `layouts/robots.txt`, and a new "Robots.txt / AI-Crawler Policy" subsection recording the durable reasoning — most importantly that the training-vs-retrieval asymmetry is deliberate and must not be "tightened" away.
+
+- Fixed a "1 January 0001" date bug on `/about/`: Congo's `[article] showDate = true` applies to all single pages, and
+  `content/about.md` had no `date:` frontmatter, so it fell back to Hugo's zero-value date. Added `date:` (feeds the
+  sitemap's `<lastmod>`) plus `showDate: false` (hides the visible date on what's a timeless page, without touching the
+  site-wide `[article]` default).
+- Removed the redundant `layout: "single"` frontmatter from `content/about.md` and `content/photography.md` — Hugo
+  already selects the `single` layout for regular pages by default, so the field did nothing.
+- Fixed `go.mod`: dropped an incorrect `// indirect` marker on the Congo require. It's imported directly via
+  `[[module.imports]]` in `hugo.toml`, not pulled in transitively by another dependency.
+- Added `layouts/robots.txt` (new Congo override, at the theme's own relative path) and `enableRobotsTXT = true` in
+  `config/_default/hugo.toml` to activate it — the setting is required or Hugo renders no robots.txt regardless of the
+  template's presence. Policy: block 18 known AI/LLM training crawlers as one `Disallow: /` group, while explicitly
+  leaving retrieval and AI-search crawlers (`ChatGPT-User`, `Claude-User`, `Perplexity-User`, `OAI-SearchBot`,
+  `Claude-SearchBot`, `PerplexityBot`, etc.) unrestricted, since those cite and link back rather than training on the
+  content. Includes a Cloudflare/IETF-draft Content Signals Policy comment line
+  (`Content-Signal: search=yes, ai-input=yes, ai-train=no`). Deprecated tokens `anthropic-ai`, `Claude-Web`, and
+  `cohere-ai` are deliberately excluded and documented inline as superseded, so they don't get "helpfully" re-added
+  later.
+- Corrected three stale comments left over from the PaperMod-era and hand-built-layout eras: `README.md` still said the
+  site was hand-built with no theme; `.github/workflows/deploy.yml` attributed its Go setup step to PaperMod instead of
+  Congo; the `Makefile`'s `run-site` comment referenced a project-subpath baseURL that no longer applies now that the
+  site publishes to the custom domain.
+- `CLAUDE.md` updated to match: a new architecture-table row for `layouts/robots.txt`, and a new "Robots.txt /
+  AI-Crawler Policy" subsection recording the durable reasoning — most importantly that the training-vs-retrieval
+  asymmetry is deliberate and must not be "tightened" away.
 
 **Decisions:**
-- **Retrieval/AI-search crawlers stay allowed, permanently, by design.** They fetch on behalf of a human and the resulting answer cites and links back — the same value exchange as a conventional search engine — so blocking them would only remove this blog from AI answers without stopping any training. Flagged in `CLAUDE.md` as a rule not to reopen.
-- **robots.txt is a statement of intent, not an enforcement mechanism.** GitHub Pages serves static files with no way to add custom response headers (no `X-Robots-Tag`), and several crawlers (Bytespider, Perplexity's undeclared crawlers, xAI) are documented as ignoring robots.txt regardless of its contents. The file is kept anyway for the well-behaved majority and for the documented intent.
+
+- **Retrieval/AI-search crawlers stay allowed, permanently, by design.** They fetch on behalf of a human and the
+  resulting answer cites and links back — the same value exchange as a conventional search engine — so blocking them
+  would only remove this blog from AI answers without stopping any training. Flagged in `CLAUDE.md` as a rule not to
+  reopen.
+- **robots.txt is a statement of intent, not an enforcement mechanism.** GitHub Pages serves static files with no way to
+  add custom response headers (no `X-Robots-Tag`), and several crawlers (Bytespider, Perplexity's undeclared crawlers,
+  xAI) are documented as ignoring robots.txt regardless of its contents. The file is kept anyway for the well-behaved
+  majority and for the documented intent.
 
 ## 2026-07-19 — Harden Hugo privacy config and CI supply-chain posture
 
-**Goal:** Reduce the YouTube embed's third-party cookie footprint, add Dependabot coverage for the Congo theme pin and GitHub Actions, and close supply-chain gaps in `deploy.yml`.
+**Goal:** Reduce the YouTube embed's third-party cookie footprint, add Dependabot coverage for the Congo theme pin and
+GitHub Actions, and close supply-chain gaps in `deploy.yml`.
 
 **Done:**
-- `config/_default/hugo.toml`: added `[privacy] [privacy.youtube] privacyEnhanced = true`, so the built-in `{{< youtube >}}` shortcode (used only by `content/posts/superman-sneak-peek.md`) emits `youtube-nocookie.com` instead of `www.youtube.com`. Verified against the built output.
-- Added `.github/dependabot.yml` (new file): weekly `gomod` and `github-actions` update checks. The `gomod` entry is what bumps the Congo theme pin, since the theme is consumed as a Hugo Module.
-- `.github/workflows/deploy.yml`: SHA-pinned all five actions, each with a trailing `# vN` comment; added `persist-credentials: false` on the checkout step; the Hugo `.deb` download is now verified against Hugo's own published `hugo_${HUGO_VERSION}_checksums.txt` before `dpkg -i` runs.
-- Switched to `hugo --gc --minify` in both the `Makefile`'s `build-site` target and the workflow's build step (was `hugo --minify` in both places).
-- Updated `CLAUDE.md`: the Commands section's `hugo --minify` reference corrected to `hugo --gc --minify`; the Configuration layout table's `hugo.toml` row now mentions `[privacy]`; a `.github/dependabot.yml` row added to the Architecture table; a new "Supply-Chain Posture" subsection under Deployment covering checksum verification, SHA-pinned actions, and `persist-credentials: false`.
-- `.github/workflows/deploy.yml` gained a `pull_request: branches: [main]` trigger so PRs against `main` get built (not just deployed pushes). `Setup Pages`, `Upload artifact`, and the whole `deploy` job are gated `if: github.event_name != 'pull_request'` so a PR never deploys. The build step is split in two: the push/dispatch variant keeps `--baseURL "${{ steps.pages.outputs.base_url }}/"`; the PR variant omits `--baseURL` entirely, since `Setup Pages` is skipped on PRs and that output would be empty (yielding `--baseURL "/"` if passed through), so the PR build falls back to `config/_default/hugo.toml`'s own `baseURL` instead. Top-level `permissions` narrowed to `contents: read`, with `pages: write`/`id-token: write` moved onto the `deploy` job only. PR runs get their own concurrency group (`github.workflow`-`github.ref`) rather than sharing the `pages` group, which has `cancel-in-progress: false` and would otherwise queue PR builds against real deploys.
+
+- `config/_default/hugo.toml`: added `[privacy] [privacy.youtube] privacyEnhanced = true`, so the built-in
+  `{{< youtube >}}` shortcode (used only by `content/posts/superman-sneak-peek.md`) emits `youtube-nocookie.com` instead
+  of `www.youtube.com`. Verified against the built output.
+- Added `.github/dependabot.yml` (new file): weekly `gomod` and `github-actions` update checks. The `gomod` entry is
+  what bumps the Congo theme pin, since the theme is consumed as a Hugo Module.
+- `.github/workflows/deploy.yml`: SHA-pinned all five actions, each with a trailing `# vN` comment; added
+  `persist-credentials: false` on the checkout step; the Hugo `.deb` download is now verified against Hugo's own
+  published `hugo_${HUGO_VERSION}_checksums.txt` before `dpkg -i` runs.
+- Switched to `hugo --gc --minify` in both the `Makefile`'s `build-site` target and the workflow's build step (was
+  `hugo --minify` in both places).
+- Updated `CLAUDE.md`: the Commands section's `hugo --minify` reference corrected to `hugo --gc --minify`; the
+  Configuration layout table's `hugo.toml` row now mentions `[privacy]`; a `.github/dependabot.yml` row added to the
+  Architecture table; a new "Supply-Chain Posture" subsection under Deployment covering checksum verification,
+  SHA-pinned actions, and `persist-credentials: false`.
+- `.github/workflows/deploy.yml` gained a `pull_request: branches: [main]` trigger so PRs against `main` get built (not
+  just deployed pushes). `Setup Pages`, `Upload artifact`, and the whole `deploy` job are gated
+  `if: github.event_name != 'pull_request'` so a PR never deploys. The build step is split in two: the push/dispatch
+  variant keeps `--baseURL "${{ steps.pages.outputs.base_url }}/"`; the PR variant omits `--baseURL` entirely, since
+  `Setup Pages` is skipped on PRs and that output would be empty (yielding `--baseURL "/"` if passed through), so the PR
+  build falls back to `config/_default/hugo.toml`'s own `baseURL` instead. Top-level `permissions` narrowed to
+  `contents: read`, with `pages: write`/`id-token: write` moved onto the `deploy` job only. PR runs get their own
+  concurrency group (`github.workflow`-`github.ref`) rather than sharing the `pages` group, which has
+  `cancel-in-progress: false` and would otherwise queue PR builds against real deploys.
 
 **Verification:**
+
 - `make preflight` passes.
-- The checksum-verification step was exercised end-to-end in an `ubuntu:24.04` container (matching the runner's GNU coreutils, not macOS): a real download with matching checksums exits 0 and `dpkg -i` succeeds (`hugo v0.164.0+extended` runs afterward); a tampered `.deb` exits 1; a checksums.txt with no matching line (simulating a future asset-naming change) exits 1 at the grep step under `set -euo pipefail`. Separately, `deploy.yml` has no `pull_request` trigger (only `push: branches: [main]` and `workflow_dispatch`), so PR #12 itself runs no checks at all (`gh pr checks` confirms none) — this container test is what actually exercised the step, not the PR's CI run.
+- The checksum-verification step was exercised end-to-end in an `ubuntu:24.04` container (matching the runner's GNU
+  coreutils, not macOS): a real download with matching checksums exits 0 and `dpkg -i` succeeds
+  (`hugo v0.164.0+extended` runs afterward); a tampered `.deb` exits 1; a checksums.txt with no matching line
+  (simulating a future asset-naming change) exits 1 at the grep step under `set -euo pipefail`. Separately, `deploy.yml`
+  has no `pull_request` trigger (only `push: branches: [main]` and `workflow_dispatch`), so PR #12 itself runs no checks
+  at all (`gh pr checks` confirms none) — this container test is what actually exercised the step, not the PR's CI run.
 
 **Decisions:**
-- **The checksum-verification step originally shipped as `grep ... | sha256sum -c -`; an initial finding that this silently bypasses on empty grep output does not hold on GitHub's actual runners.** GitHub Actions runs `run:` blocks as `bash -e` without `pipefail`, so a pipeline's exit status is only the last command's — the concern was that if `grep` ever matched nothing (a future Hugo release renaming its `.deb`, or a `HUGO_VERSION` bump to differently-named assets), `sha256sum -c` would read empty stdin and exit 0, silently passing the step. That behavior was observed on macOS (`sha256sum (Darwin) 1.0`: empty stdin → exit 0) and over-generalized to CI without testing the actual runner platform. Verified directly in an `ubuntu:24.04` container against GNU coreutils 9.4 (what `ubuntu-latest` ships): empty stdin → **exit 1**, with `sha256sum: 'standard input': no properly formatted checksum lines found`. So the original bare pipeline would have failed correctly on the real CI platform — there was no live vulnerability to patch. `set -euo pipefail` plus extracting the matched checksum line to a file is kept anyway, as portability hardening (it removes the dependency on which `sha256sum` implementation is running) and to make a no-match fail at an obvious locus (the grep) rather than depending on `sha256sum`'s empty-input behavior.
-- The grep-matches-nothing failure mode is currently silent — `grep` prints nothing on no match, so that path fails closed but with no diagnostic message. Accepted as a known, minor rough edge rather than fixed further.
-- **A CSP was considered and rejected.** GitHub Pages cannot set response headers, so any CSP would have to ship as a `<meta>` tag — which can't express `frame-ancestors` — and Congo inlines its own JS, so the policy would need `unsafe-inline` regardless. The result would look protective without actually being so; not worth the false sense of security. Recorded here so it isn't re-proposed later.
-- SHA-pinning the workflow's actions keeps trailing `# vN` comments specifically so Dependabot can still parse and bump them despite the pin.
-- **The PR build lives inside `deploy.yml` as `if:`-guarded jobs/steps, not a separate `ci.yml`.** A second workflow would need its own copy of the checksum-verified Hugo-install step (see Verification above), and duplicating a security-relevant step invites drift the next time `HUGO_VERSION` bumps — one workflow with the build/deploy split expressed via `if:` guards keeps that step singular instead of risking two copies going out of sync. Worth recording: before this change the repo had **no pre-merge CI at all** — every change reached `main` untested, and the deploy run itself was what discovered breakage after the fact.
+
+- **The checksum-verification step originally shipped as `grep ... | sha256sum -c -`; an initial finding that this
+  silently bypasses on empty grep output does not hold on GitHub's actual runners.** GitHub Actions runs `run:` blocks
+  as `bash -e` without `pipefail`, so a pipeline's exit status is only the last command's — the concern was that if
+  `grep` ever matched nothing (a future Hugo release renaming its `.deb`, or a `HUGO_VERSION` bump to differently-named
+  assets), `sha256sum -c` would read empty stdin and exit 0, silently passing the step. That behavior was observed on
+  macOS (`sha256sum (Darwin) 1.0`: empty stdin → exit 0) and over-generalized to CI without testing the actual runner
+  platform. Verified directly in an `ubuntu:24.04` container against GNU coreutils 9.4 (what `ubuntu-latest` ships):
+  empty stdin → **exit 1**, with `sha256sum: 'standard input': no properly formatted checksum lines found`. So the
+  original bare pipeline would have failed correctly on the real CI platform — there was no live vulnerability to patch.
+  `set -euo pipefail` plus extracting the matched checksum line to a file is kept anyway, as portability hardening (it
+  removes the dependency on which `sha256sum` implementation is running) and to make a no-match fail at an obvious locus
+  (the grep) rather than depending on `sha256sum`'s empty-input behavior.
+- The grep-matches-nothing failure mode is currently silent — `grep` prints nothing on no match, so that path fails
+  closed but with no diagnostic message. Accepted as a known, minor rough edge rather than fixed further.
+- **A CSP was considered and rejected.** GitHub Pages cannot set response headers, so any CSP would have to ship as a
+  `<meta>` tag — which can't express `frame-ancestors` — and Congo inlines its own JS, so the policy would need
+  `unsafe-inline` regardless. The result would look protective without actually being so; not worth the false sense of
+  security. Recorded here so it isn't re-proposed later.
+- SHA-pinning the workflow's actions keeps trailing `# vN` comments specifically so Dependabot can still parse and bump
+  them despite the pin.
+- **The PR build lives inside `deploy.yml` as `if:`-guarded jobs/steps, not a separate `ci.yml`.** A second workflow
+  would need its own copy of the checksum-verified Hugo-install step (see Verification above), and duplicating a
+  security-relevant step invites drift the next time `HUGO_VERSION` bumps — one workflow with the build/deploy split
+  expressed via `if:` guards keeps that step singular instead of risking two copies going out of sync. Worth recording:
+  before this change the repo had **no pre-merge CI at all** — every change reached `main` untested, and the deploy run
+  itself was what discovered breakage after the fact.
 
 ## 2026-09-03 — Document the weekly Cowork blog-idea job
 
-**Goal:** Record the Claude Cowork scheduled task that generates blog topic prompts, so that neither its input nor its output looks like a stray untracked file to the next person opening the working tree.
+**Goal:** Record the Claude Cowork scheduled task that generates blog topic prompts, so that neither its input nor its
+output looks like a stray untracked file to the next person opening the working tree.
 
 **Done:**
-- New `## Idea Pipeline (weekly Cowork job)` section in `CLAUDE.md`, covering the task ("Weekly blog ideas — AerieWebsite", Mondays 7:00 AM Pacific), its device-task nature (requires this Mac via `device_bash`, repo mounted at `$HOME/mnt/AerieWebsite` rather than its real path), the five steps per run, the constraints it operates under, the idea file format, and how to promote an idea into a post.
-- Two new architecture-table rows (`BEATS.md`, `content/ideas/`) and a pointer in the Commands → Authoring loop section, so the Commands section reflects that posts have a second origin besides `make new-post`.
-- Started tracking `BEATS.md` (the job's only hand-editable configuration surface — each `## ` heading is a beat, `(paused)` skips one, bullets are hints) and `content/ideas/_index.md` (whose `cascade: draft: true` guards the section).
+
+- New `## Idea Pipeline (weekly Cowork job)` section in `CLAUDE.md`, covering the task ("Weekly blog ideas —
+  AerieWebsite", Mondays 7:00 AM Pacific), its device-task nature (requires this Mac via `device_bash`, repo mounted at
+  `$HOME/mnt/AerieWebsite` rather than its real path), the five steps per run, the constraints it operates under, the
+  idea file format, and how to promote an idea into a post.
+- Two new architecture-table rows (`BEATS.md`, `content/ideas/`) and a pointer in the Commands → Authoring loop section,
+  so the Commands section reflects that posts have a second origin besides `make new-post`.
+- Started tracking `BEATS.md` (the job's only hand-editable configuration surface — each `## ` heading is a beat,
+  `(paused)` skips one, bullets are hints) and `content/ideas/_index.md` (whose `cascade: draft: true` guards the
+  section).
 - The ten generated idea files were deliberately left untracked as a weekly-turnover working queue.
 
 **Verification:**
+
 - `make preflight` clean on Hugo 0.165.0+extended (84 pages).
-- `find public -path '*idea*'` returns nothing, so the claim that the ideas section cannot publish is checked against a real build rather than read off the config.
+- `find public -path '*idea*'` returns nothing, so the claim that the ideas section cannot publish is checked against a
+  real build rather than read off the config.
 
 **Decisions:**
-- **The task lives in Cowork, not in this repo.** It cannot be grepped, diffed, reviewed, or version-controlled from a checkout, and nothing here fails if its instructions drift — so changing how ideas are generated is an edit in the Cowork UI, not a commit. Same shape as the HistoryLessonGenerator arrangement documented in `~/Projects/CLAUDE.md`.
-- **The description convention is duplicated inside the Cowork prompt**, because the task cannot read `CLAUDE.md` by reference. Changing the convention here alone will quietly let generated ideas drift from house style. Recorded in `CLAUDE.md` so the duplication is discoverable from the side most likely to be edited.
-- **Two independent mechanisms keep `content/ideas/` unpublished, and both are load-bearing:** the section's `cascade: draft: true` (drafts are dropped by the production build, which runs without `-D`), and `params.mainSections = ["posts"]` (keeps the section out of the homepage list, RSS, and Congo's article listings). Documented as a pair specifically so neither is "simplified" away later on the grounds that the other covers it.
-- **`beat:` in idea frontmatter is provenance only** — not a Hugo or Congo parameter, nothing renders it, and it gets dropped when an idea is promoted to a post.
+
+- **The task lives in Cowork, not in this repo.** It cannot be grepped, diffed, reviewed, or version-controlled from a
+  checkout, and nothing here fails if its instructions drift — so changing how ideas are generated is an edit in the
+  Cowork UI, not a commit. Same shape as the HistoryLessonGenerator arrangement documented in `~/Projects/CLAUDE.md`.
+- **The description convention is duplicated inside the Cowork prompt**, because the task cannot read `CLAUDE.md` by
+  reference. Changing the convention here alone will quietly let generated ideas drift from house style. Recorded in
+  `CLAUDE.md` so the duplication is discoverable from the side most likely to be edited.
+- **Two independent mechanisms keep `content/ideas/` unpublished, and both are load-bearing:** the section's
+  `cascade: draft: true` (drafts are dropped by the production build, which runs without `-D`), and
+  `params.mainSections = ["posts"]` (keeps the section out of the homepage list, RSS, and Congo's article listings).
+  Documented as a pair specifically so neither is "simplified" away later on the grounds that the other covers it.
+- **`beat:` in idea frontmatter is provenance only** — not a Hugo or Congo parameter, nothing renders it, and it gets
+  dropped when an idea is promoted to a post.
 
 **Observed, not acted on:**
-- The idea count went from 5 to 10 files *during* the session, on a Thursday. This is **not** a schedule problem — the job is also run by hand, and the owner confirmed a manual run was in flight at the time. The Monday 7:00 AM trigger is intact and unaffected by a manual run. Recorded because the off-schedule files invite exactly the wrong conclusion, which was in fact drawn here before being corrected: `content/ideas/` gaining files on any day of the week is normal, and is not evidence the trigger config needs auditing.
-- `CLAUDE.md` states the CI Hugo version is **0.164.0 extended**, but this machine builds with **0.165.0+extended**. Pre-existing local/CI drift, unrelated to this change, so it was not touched here.
+
+- The idea count went from 5 to 10 files *during* the session, on a Thursday. This is **not** a schedule problem — the
+  job is also run by hand, and the owner confirmed a manual run was in flight at the time. The Monday 7:00 AM trigger is
+  intact and unaffected by a manual run. Recorded because the off-schedule files invite exactly the wrong conclusion,
+  which was in fact drawn here before being corrected: `content/ideas/` gaining files on any day of the week is normal,
+  and is not evidence the trigger config needs auditing.
+- `CLAUDE.md` states the CI Hugo version is **0.164.0 extended**, but this machine builds with **0.165.0+extended**.
+  Pre-existing local/CI drift, unrelated to this change, so it was not touched here.
 
 ## 2026-09-03 — Bump CI Hugo to 0.165.0, close the local/CI version gap
 
-**Goal:** `make preflight` is the only pre-merge gate on this repo, and it was running Homebrew's 0.165.0 while `deploy.yml` built production with 0.164.0 — so the gate was exercising a different binary than the deploy. Close the gap and document how the pin is maintained.
+**Goal:** `make preflight` is the only pre-merge gate on this repo, and it was running Homebrew's 0.165.0 while
+`deploy.yml` built production with 0.164.0 — so the gate was exercising a different binary than the deploy. Close the
+gap and document how the pin is maintained.
 
 **Done:**
-- `.github/workflows/deploy.yml`: `HUGO_VERSION` 0.164.0 → 0.165.0 (released 2026-08-12, current at time of bump). One-line change; the install step needed no edits.
-- `CLAUDE.md`: replaced the bare "Hugo version in CI" one-liner with the version, where it's pinned, the requirement to keep CI and this machine matched, and the bump procedure.
+
+- `.github/workflows/deploy.yml`: `HUGO_VERSION` 0.164.0 → 0.165.0 (released 2026-08-12, current at time of bump).
+  One-line change; the install step needed no edits.
+- `CLAUDE.md`: replaced the bare "Hugo version in CI" one-liner with the version, where it's pinned, the requirement to
+  keep CI and this machine matched, and the bump procedure.
 
 **Verification:**
-- Confirmed **before** bumping that v0.165.0 publishes both assets the install step interpolates — `hugo_extended_0.165.0_linux-amd64.deb` and `hugo_0.165.0_checksums.txt` — so the checksum-verification step's naming assumptions still hold. This was the one real risk in changing `HUGO_VERSION` and is why the step needed no changes.
-- `make preflight` clean locally (84 pages). Note this proves nothing new: the local Hugo was already 0.165.0, so the gate was green on that version before the bump too. **The PR build is the first genuine test of 0.165.0 in CI.**
+
+- Confirmed **before** bumping that v0.165.0 publishes both assets the install step interpolates —
+  `hugo_extended_0.165.0_linux-amd64.deb` and `hugo_0.165.0_checksums.txt` — so the checksum-verification step's naming
+  assumptions still hold. This was the one real risk in changing `HUGO_VERSION` and is why the step needed no changes.
+- `make preflight` clean locally (84 pages). Note this proves nothing new: the local Hugo was already 0.165.0, so the
+  gate was green on that version before the bump too. **The PR build is the first genuine test of 0.165.0 in CI.**
 
 **Decisions:**
-- **The hand-rolled wget + checksum + dpkg install step is kept; only the number changed.** `peaceiris/actions-hugo` (v3.2.1, maintained) and the `step-security` hardened fork would each replace ~13 lines with 4, but they mean delegating binary fetching and integrity checking to a third party — directly against this repo's posture, where all five actions are SHA-pinned and the checksum verification was hand-written specifically so the pipeline's one network-trusting point is locally controlled. Not a good trade for nine lines. Recorded so it isn't re-proposed.
+
+- **The hand-rolled wget + checksum + dpkg install step is kept; only the number changed.** `peaceiris/actions-hugo`
+  (v3.2.1, maintained) and the `step-security` hardened fork would each replace ~13 lines with 4, but they mean
+  delegating binary fetching and integrity checking to a third party — directly against this repo's posture, where all
+  five actions are SHA-pinned and the checksum verification was hand-written specifically so the pipeline's one
+  network-trusting point is locally controlled. Not a good trade for nine lines. Recorded so it isn't re-proposed.
 - **Hugo is not preinstalled on `ubuntu-latest`**, so "just use the runner's copy" is not an available option.
-- **No tooling can watch this pin.** Dependabot's `github-actions` ecosystem tracks `uses:` refs, not arbitrary env vars, so it cannot see `HUGO_VERSION`; switching to a setup action would not help either, since Dependabot would bump the action rather than its `hugo-version` input. Noticing a Hugo release is therefore manual and always will be under this design. The drift that prompted this bump was caught by eye, not by a check.
-- **`withdeploy` is not worth chasing.** Homebrew installs `0.165.0+extended+withdeploy` while CI installs plain `extended`; the suffix only adds the `hugo deploy` command for S3/GCS targets, unused here since deployment goes through Actions to Pages. Exact parity between the two is therefore unattainable and doesn't matter.
+- **No tooling can watch this pin.** Dependabot's `github-actions` ecosystem tracks `uses:` refs, not arbitrary env
+  vars, so it cannot see `HUGO_VERSION`; switching to a setup action would not help either, since Dependabot would bump
+  the action rather than its `hugo-version` input. Noticing a Hugo release is therefore manual and always will be under
+  this design. The drift that prompted this bump was caught by eye, not by a check.
+- **`withdeploy` is not worth chasing.** Homebrew installs `0.165.0+extended+withdeploy` while CI installs plain
+  `extended`; the suffix only adds the `hugo deploy` command for S3/GCS targets, unused here since deployment goes
+  through Actions to Pages. Exact parity between the two is therefore unattainable and doesn't matter.
 
 ## 2026-09-03 — Date-prefix post filenames; decouple filename from URL via `slug:`
 
-**Goal:** Adopt `YYYY-MM-DD-<slug>` filenames for posts, matching the convention already used in `content/ideas/`, without changing any published URL.
+**Goal:** Adopt `YYYY-MM-DD-<slug>` filenames for posts, matching the convention already used in `content/ideas/`,
+without changing any published URL.
 
 **Done:**
-- Renamed all 14 posts (12 flat files, 2 page bundles) to `content/posts/YYYY-MM-DD-<slug>`, using each post's own frontmatter date. Done with `git mv`, so history follows the files and the bundle images move with their `index.md`.
+
+- Renamed all 14 posts (12 flat files, 2 page bundles) to `content/posts/YYYY-MM-DD-<slug>`, using each post's own
+  frontmatter date. Done with `git mv`, so history follows the files and the bundle images move with their `index.md`.
 - Added an explicit `slug:` to every post, set to its pre-rename filename, which holds each URL exactly where it was.
-- `archetypes/default.md`: strips the `YYYY-MM-DD-` prefix off `.File.ContentBaseName` into a `$slug` variable used for both `title:` and a now-uncommented `slug:`. Without this a dated filename would generate the title "2025 04 23 Ai 2027".
+- `archetypes/default.md`: strips the `YYYY-MM-DD-` prefix off `.File.ContentBaseName` into a `$slug` variable used for
+  both `title:` and a now-uncommented `slug:`. Without this a dated filename would generate the title "2025 04 23 Ai
+  2027".
 - `Makefile`: `new-post` now creates `posts/$$(date +%F)-$(TITLE).md`, so `TITLE` stays an undated slug.
-- `CLAUDE.md`: new "Post filenames and URLs" section under Commands; the URL-scheme section's no-`slug:` rule reversed with its rationale; stale `content/posts/<slug>` paths updated across the architecture table, the bundle/embed notes, and the idea-promotion steps.
+- `CLAUDE.md`: new "Post filenames and URLs" section under Commands; the URL-scheme section's no-`slug:` rule reversed
+  with its rationale; stale `content/posts/<slug>` paths updated across the architecture table, the bundle/embed notes,
+  and the idea-promotion steps.
 
 **Verification:**
-- All three approaches were built against the real content in a scratch copy before choosing one, and the chosen one was verified again in the repo: **all 79 published HTML paths, `index.xml`, and `sitemap.xml` are byte-identical to a build of `main`.** The rename is provably output-neutral.
-- `make new-post TITLE=archetype-probe` exercised end-to-end: produced `2026-09-03-archetype-probe.md` with `title: 'Archetype Probe'` and `slug: "archetype-probe"`. Probe deleted.
+
+- All three approaches were built against the real content in a scratch copy before choosing one, and the chosen one was
+  verified again in the repo: **all 79 published HTML paths, `index.xml`, and `sitemap.xml` are byte-identical to a
+  build of `main`.** The rename is provably output-neutral.
+- `make new-post TITLE=archetype-probe` exercised end-to-end: produced `2026-09-03-archetype-probe.md` with
+  `title: 'Archetype Probe'` and `slug: "archetype-probe"`. Probe deleted.
 - `make preflight` clean, 84 pages.
 
 **Decisions:**
-- **`slug:` on every post reverses the previous "posts carry no `slug:` field, and none should be added" rule.** That rule targeted `scripts/migrate-wordpress.py`, which emitted slugs that merely restated the filename. Under dated filenames the field is the only thing keeping the date out of the URL, so it now does real work.
-- **Rejected: `[frontmatter] date = [":filename", ":default"]`.** It strips the date prefix from the URL automatically and needs no `slug:` fields, which makes it look like the clean answer. It is not: the stripping only happens because Hugo takes the date *from* the filename, which then overrides frontmatter `date:` and discards the time of day. Four dates here carry multiple posts (four on 2025-04-05, three on 2025-04-01, two each on 2025-04-23 and 2025-05-31), and without times they sort alphabetically — measured to reorder 11 of the 14 posts. Recorded so this isn't re-proposed as a simplification.
-- **Rejected: dated filenames with dated URLs** (rename only, no `slug:`). Ordering and dates survive, but all 14 current URLs would 404 unless paired with `aliases:` on every post. These are the live, indexed URLs; churning them for a filing convention isn't worth it.
-- Historical `WORKLOG.md` entries still naming pre-rename paths were left alone — those filenames were accurate when written.
+
+- **`slug:` on every post reverses the previous "posts carry no `slug:` field, and none should be added" rule.** That
+  rule targeted `scripts/migrate-wordpress.py`, which emitted slugs that merely restated the filename. Under dated
+  filenames the field is the only thing keeping the date out of the URL, so it now does real work.
+- **Rejected: `[frontmatter] date = [":filename", ":default"]`.** It strips the date prefix from the URL automatically
+  and needs no `slug:` fields, which makes it look like the clean answer. It is not: the stripping only happens because
+  Hugo takes the date *from* the filename, which then overrides frontmatter `date:` and discards the time of day. Four
+  dates here carry multiple posts (four on 2025-04-05, three on 2025-04-01, two each on 2025-04-23 and 2025-05-31), and
+  without times they sort alphabetically — measured to reorder 11 of the 14 posts. Recorded so this isn't re-proposed as
+  a simplification.
+- **Rejected: dated filenames with dated URLs** (rename only, no `slug:`). Ordering and dates survive, but all 14
+  current URLs would 404 unless paired with `aliases:` on every post. These are the live, indexed URLs; churning them
+  for a filing convention isn't worth it.
+- Historical `WORKLOG.md` entries still naming pre-rename paths were left alone — those filenames were accurate when
+  written.
 
 ## 2026-09-03 — Enforce the post-filename convention in preflight; fix a silently-passing gate
 
-**Goal:** The `YYYY-MM-DD-` post filename convention adopted earlier today was enforced by nothing — only `make new-post` applied it, and any other route produced a silently valid non-conforming post.
+**Goal:** The `YYYY-MM-DD-` post filename convention adopted earlier today was enforced by nothing — only
+`make new-post` applied it, and any other route produced a silently valid non-conforming post.
 
 **Done:**
-- New `make check-post-names` target: fails if anything in `content/posts/` (flat file or page-bundle directory, `_index.md` exempted) lacks a `YYYY-MM-DD-` prefix. Wired into `preflight`.
-- `CLAUDE.md`: documents the target, why the convention needs a guard at all, and the `check-post-names` entry in the Makefile architecture row.
 
-**Fixed along the way — `preflight` was not actually gating.** Its recipe chained steps with `;`, so a failing step only printed its error and preflight carried on, exiting 0 on the strength of whatever ran last. Caught by testing the failure path: `check-post-names` failed, `build-site` ran anyway, and `preflight` reported success. Now chained with `&&`, verified to stop at the failure and exit non-zero. **This flaw predates today's change** — the original `clean; build-site` had it too; it went unnoticed because `clean` does not realistically fail. Any past green `preflight` where a step failed would have been reported as passing.
+- New `make check-post-names` target: fails if anything in `content/posts/` (flat file or page-bundle directory,
+  `_index.md` exempted) lacks a `YYYY-MM-DD-` prefix. Wired into `preflight`.
+- `CLAUDE.md`: documents the target, why the convention needs a guard at all, and the `check-post-names` entry in the
+  Makefile architecture row.
+
+**Fixed along the way — `preflight` was not actually gating.** Its recipe chained steps with `;`, so a failing step only
+printed its error and preflight carried on, exiting 0 on the strength of whatever ran last. Caught by testing the
+failure path: `check-post-names` failed, `build-site` ran anyway, and `preflight` reported success. Now chained with
+`&&`, verified to stop at the failure and exit non-zero. **This flaw predates today's change** — the original
+`clean; build-site` had it too; it went unnoticed because `clean` does not realistically fail. Any past green
+`preflight` where a step failed would have been reported as passing.
 
 **Verification:**
+
 - Clean tree: `check-post-names` prints "Post filenames OK."; `preflight` completes, 84 pages.
-- Violating flat file (`hugo new posts/violating-post.md`): check fails, exit 1; `preflight` exits 2 **without running `build-site`**.
+- Violating flat file (`hugo new posts/violating-post.md`): check fails, exit 1; `preflight` exits 2 **without running
+  `build-site`**.
 - Violating page-bundle directory (`content/posts/undated-bundle/`): also caught, confirming the check is not file-only.
 
 **Decisions:**
-- **The guard has to live in the Makefile because Hugo cannot provide it.** `hugo new posts/<name>.md` writes exactly the path given; no Hugo setting rewrites that path, and archetypes control a file's contents, never its name — an archetype can strip a date prefix (as this one does) but can never add one. Confirmed against Hugo's `new content` command reference: no flag or config option affects the output filename.
-- **Nothing else would ever catch a violation**, which is why the check earns its place: new posts are `draft: true` so a build never renders them, and once published the `slug:` field makes the URL correct regardless of filename. An undated post is invisibly valid.
+
+- **The guard has to live in the Makefile because Hugo cannot provide it.** `hugo new posts/<name>.md` writes exactly
+  the path given; no Hugo setting rewrites that path, and archetypes control a file's contents, never its name — an
+  archetype can strip a date prefix (as this one does) but can never add one. Confirmed against Hugo's `new content`
+  command reference: no flag or config option affects the output filename.
+- **Nothing else would ever catch a violation**, which is why the check earns its place: new posts are `draft: true` so
+  a build never renders them, and once published the `slug:` field makes the URL correct regardless of filename. An
+  undated post is invisibly valid.
 
 ## 2026-09-03 — Document `content/ideas/_previous/`
 
-**Goal:** A `_previous/` subdirectory appeared under `content/ideas/` mid-session with no explanation in the repo, which is how a future session ends up deleting it as cruft.
+**Goal:** A `_previous/` subdirectory appeared under `content/ideas/` mid-session with no explanation in the repo, which
+is how a future session ends up deleting it as cruft.
 
 **Done:**
-- `CLAUDE.md`: new subsection under Idea Pipeline explaining the directory, plus a bullet in the job's constraints list noting it does not delete.
+
+- `CLAUDE.md`: new subsection under Idea Pipeline explaining the directory, plus a bullet in the job's constraints list
+  noting it does not delete.
 
 **Decisions / durable facts:**
-- **The Cowork task moves superseded batches instead of deleting them because it cannot reliably get deletions authorized.** This is a workaround, not a design preference. Don't "fix" the accumulation by wiring deletion back into the task — the authorization problem is exactly why the directory exists. Hand-pruning when it gets noisy is fine.
-- **The leading underscore is doing no work.** Hugo has no convention of ignoring `_`-prefixed directories — that is Jekyll. Verified with `hugo list drafts`: the files under `_previous/` are real pages in the `ideas` section with real permalinks (`/ideas/_previous/<slug>/`). They stay unpublished solely because the section's `cascade: draft: true` reaches them like any other descendant. Removing that cascade would publish this directory too, which is worth knowing before anyone treats the underscore as the safeguard.
+
+- **The Cowork task moves superseded batches instead of deleting them because it cannot reliably get deletions
+  authorized.** This is a workaround, not a design preference. Don't "fix" the accumulation by wiring deletion back into
+  the task — the authorization problem is exactly why the directory exists. Hand-pruning when it gets noisy is fine.
+- **The leading underscore is doing no work.** Hugo has no convention of ignoring `_`-prefixed directories — that is
+  Jekyll. Verified with `hugo list drafts`: the files under `_previous/` are real pages in the `ideas` section with real
+  permalinks (`/ideas/_previous/<slug>/`). They stay unpublished solely because the section's `cascade: draft: true`
+  reaches them like any other descendant. Removing that cascade would publish this directory too, which is worth knowing
+  before anyone treats the underscore as the safeguard.
 - Confirmed against the current build: nothing under `content/ideas/` reaches `public/`.
