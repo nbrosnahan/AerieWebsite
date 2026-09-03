@@ -212,3 +212,21 @@ was being retired, and into the project itself.
 **Observed, not acted on:**
 - The idea count went from 5 to 10 files *during* the session, on a Thursday. This is **not** a schedule problem — the job is also run by hand, and the owner confirmed a manual run was in flight at the time. The Monday 7:00 AM trigger is intact and unaffected by a manual run. Recorded because the off-schedule files invite exactly the wrong conclusion, which was in fact drawn here before being corrected: `content/ideas/` gaining files on any day of the week is normal, and is not evidence the trigger config needs auditing.
 - `CLAUDE.md` states the CI Hugo version is **0.164.0 extended**, but this machine builds with **0.165.0+extended**. Pre-existing local/CI drift, unrelated to this change, so it was not touched here.
+
+## 2026-09-03 — Bump CI Hugo to 0.165.0, close the local/CI version gap
+
+**Goal:** `make preflight` is the only pre-merge gate on this repo, and it was running Homebrew's 0.165.0 while `deploy.yml` built production with 0.164.0 — so the gate was exercising a different binary than the deploy. Close the gap and document how the pin is maintained.
+
+**Done:**
+- `.github/workflows/deploy.yml`: `HUGO_VERSION` 0.164.0 → 0.165.0 (released 2026-08-12, current at time of bump). One-line change; the install step needed no edits.
+- `CLAUDE.md`: replaced the bare "Hugo version in CI" one-liner with the version, where it's pinned, the requirement to keep CI and this machine matched, and the bump procedure.
+
+**Verification:**
+- Confirmed **before** bumping that v0.165.0 publishes both assets the install step interpolates — `hugo_extended_0.165.0_linux-amd64.deb` and `hugo_0.165.0_checksums.txt` — so the checksum-verification step's naming assumptions still hold. This was the one real risk in changing `HUGO_VERSION` and is why the step needed no changes.
+- `make preflight` clean locally (84 pages). Note this proves nothing new: the local Hugo was already 0.165.0, so the gate was green on that version before the bump too. **The PR build is the first genuine test of 0.165.0 in CI.**
+
+**Decisions:**
+- **The hand-rolled wget + checksum + dpkg install step is kept; only the number changed.** `peaceiris/actions-hugo` (v3.2.1, maintained) and the `step-security` hardened fork would each replace ~13 lines with 4, but they mean delegating binary fetching and integrity checking to a third party — directly against this repo's posture, where all five actions are SHA-pinned and the checksum verification was hand-written specifically so the pipeline's one network-trusting point is locally controlled. Not a good trade for nine lines. Recorded so it isn't re-proposed.
+- **Hugo is not preinstalled on `ubuntu-latest`**, so "just use the runner's copy" is not an available option.
+- **No tooling can watch this pin.** Dependabot's `github-actions` ecosystem tracks `uses:` refs, not arbitrary env vars, so it cannot see `HUGO_VERSION`; switching to a setup action would not help either, since Dependabot would bump the action rather than its `hugo-version` input. Noticing a Hugo release is therefore manual and always will be under this design. The drift that prompted this bump was caught by eye, not by a check.
+- **`withdeploy` is not worth chasing.** Homebrew installs `0.165.0+extended+withdeploy` while CI installs plain `extended`; the suffix only adds the `hugo deploy` command for S3/GCS targets, unused here since deployment goes through Actions to Pages. Exact parity between the two is therefore unattainable and doesn't matter.

@@ -59,7 +59,28 @@ the site. No bare URLs, no markdown links, and no editorializing or verdict
 link plus commentary, describe *what's being linked* in words; the link
 itself belongs in the post body, where it's clickable and has context.
 
-Hugo version in CI: **0.164.0 extended**.
+**Hugo version: 0.165.0 extended.** CI pins it as `HUGO_VERSION` in
+`.github/workflows/deploy.yml`, installed as a checksum-verified `.deb`; this
+machine runs Homebrew's **0.165.0+extended+withdeploy**, so `make preflight`
+and the deploy exercise the same Hugo. Keep them matched when bumping either —
+the local gate is only meaningful as a pre-merge check while it runs the same
+build that produces the published site. (The `withdeploy` suffix Homebrew adds
+is not a discrepancy worth chasing: it only adds the `hugo deploy` command for
+S3/GCS targets, which this site never uses — it deploys through Actions to
+Pages.)
+
+**Nothing watches the pin for you.** Dependabot's `github-actions` ecosystem
+tracks `uses:` refs, not arbitrary env vars, so it cannot see `HUGO_VERSION`
+and will never open a bump PR for it — noticing a Hugo release is manual, and
+that is not fixable by switching to a setup action (Dependabot would bump the
+action, not the `hugo-version` input passed to it). The pin drifted a release
+behind this way once already, caught only by eye in September 2026.
+
+Bumping it is a one-line edit **provided the release keeps Hugo's asset
+naming** — the install step interpolates `HUGO_VERSION` into both
+`hugo_extended_${HUGO_VERSION}_linux-amd64.deb` and
+`hugo_${HUGO_VERSION}_checksums.txt`, so check those two assets exist on the
+target release before bumping. A rename fails loudly at the `grep`, by design.
 
 ## Architecture
 
