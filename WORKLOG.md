@@ -210,5 +210,5 @@ was being retired, and into the project itself.
 - **`beat:` in idea frontmatter is provenance only** — not a Hugo or Congo parameter, nothing renders it, and it gets dropped when an idea is promoted to a post.
 
 **Observed, not acted on:**
-- The idea count went from 5 to 10 files *during* the session — a run landed between the initial `ls` and the commit, matching a "today at 9:35 AM" entry in the job's history. Today is a Thursday, so the job is firing more often than its stated Monday schedule. Left alone; worth a look at the Cowork task's trigger config if five per week was the intent.
+- The idea count went from 5 to 10 files *during* the session, on a Thursday. This is **not** a schedule problem — the job is also run by hand, and the owner confirmed a manual run was in flight at the time. The Monday 7:00 AM trigger is intact and unaffected by a manual run. Recorded because the off-schedule files invite exactly the wrong conclusion, which was in fact drawn here before being corrected: `content/ideas/` gaining files on any day of the week is normal, and is not evidence the trigger config needs auditing.
 - `CLAUDE.md` states the CI Hugo version is **0.164.0 extended**, but this machine builds with **0.165.0+extended**. Pre-existing local/CI drift, unrelated to this change, so it was not touched here.
