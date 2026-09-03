@@ -32,7 +32,10 @@ make build-site
 # Remove build artifacts (public/, resources/_gen)
 make clean
 
-# Pre-merge gate: clean + build-site (skip with SKIP_PREFLIGHT=1)
+# Verify every post filename is YYYY-MM-DD-<slug> (runs inside preflight)
+make check-post-names
+
+# Pre-merge gate: clean + check-post-names + build-site (skip with SKIP_PREFLIGHT=1)
 make preflight
 ```
 
@@ -67,6 +70,22 @@ This split is deliberate and both halves are load-bearing:
 `make new-post TITLE=<slug>` handles the prefix for you: pass an undated slug
 and it creates `posts/$(date +%F)-<slug>.md`, with `archetypes/default.md`
 stripping the date back off into both `title:` and `slug:`.
+
+**`make new-post` is the only command that applies the prefix**, and
+`make check-post-names` (folded into `preflight`) is what enforces it
+everywhere else. The guard is not decoration — nothing else catches a
+violation:
+
+- **Hugo cannot add the prefix itself.** `hugo new posts/<name>.md` writes
+  exactly the path it is given; no Hugo setting rewrites that path, and an
+  archetype controls only a file's *contents*, never its name. An archetype
+  can strip a date prefix, as this one does, but can never add one.
+- **A build will not flag it.** New posts are `draft: true`, so a production
+  build never renders them; and once published, `slug:` means the URL is
+  correct regardless of the filename. An undated post is invisibly valid.
+
+The check covers page-bundle directories as well as flat files, and exempts
+`_index.md`.
 
 Post *ideas* arrive on their own schedule: a weekly Cowork job drops five
 researched topic prompts into `content/ideas/` every Monday morning, and
@@ -110,7 +129,7 @@ The site renders via the **Congo theme module** — there is no hand-built `base
 
 | File | Purpose |
 |------|---------|
-| `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post` (prepends today's date to `TITLE`), `clean`, `preflight`, `help` |
+| `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post` (prepends today's date to `TITLE`), `check-post-names`, `clean`, `preflight`, `help` |
 | `go.mod` / `go.sum` | Pin the Congo theme as a Hugo Module at the upstream release tag `v2.14.0` — see Theme Management below |
 | `LICENSE` | Proprietary, all-rights-reserved — not Apache 2.0. The written content is the asset here, not open-source code, so this repo deliberately departs from this org's usual public-repo licensing default |
 | `config/_default/` | **All site configuration.** Congo expects its config split across this directory rather than a single root `hugo.toml`; there is no root `hugo.toml` in this repo — see the file-by-file breakdown below |
