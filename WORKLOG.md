@@ -188,3 +188,27 @@ was being retired, and into the project itself.
 - **A CSP was considered and rejected.** GitHub Pages cannot set response headers, so any CSP would have to ship as a `<meta>` tag — which can't express `frame-ancestors` — and Congo inlines its own JS, so the policy would need `unsafe-inline` regardless. The result would look protective without actually being so; not worth the false sense of security. Recorded here so it isn't re-proposed later.
 - SHA-pinning the workflow's actions keeps trailing `# vN` comments specifically so Dependabot can still parse and bump them despite the pin.
 - **The PR build lives inside `deploy.yml` as `if:`-guarded jobs/steps, not a separate `ci.yml`.** A second workflow would need its own copy of the checksum-verified Hugo-install step (see Verification above), and duplicating a security-relevant step invites drift the next time `HUGO_VERSION` bumps — one workflow with the build/deploy split expressed via `if:` guards keeps that step singular instead of risking two copies going out of sync. Worth recording: before this change the repo had **no pre-merge CI at all** — every change reached `main` untested, and the deploy run itself was what discovered breakage after the fact.
+
+## 2026-09-03 — Document the weekly Cowork blog-idea job
+
+**Goal:** Record the Claude Cowork scheduled task that generates blog topic prompts, so that neither its input nor its output looks like a stray untracked file to the next person opening the working tree.
+
+**Done:**
+- New `## Idea Pipeline (weekly Cowork job)` section in `CLAUDE.md`, covering the task ("Weekly blog ideas — AerieWebsite", Mondays 7:00 AM Pacific), its device-task nature (requires this Mac via `device_bash`, repo mounted at `$HOME/mnt/AerieWebsite` rather than its real path), the five steps per run, the constraints it operates under, the idea file format, and how to promote an idea into a post.
+- Two new architecture-table rows (`BEATS.md`, `content/ideas/`) and a pointer in the Commands → Authoring loop section, so the Commands section reflects that posts have a second origin besides `make new-post`.
+- Started tracking `BEATS.md` (the job's only hand-editable configuration surface — each `## ` heading is a beat, `(paused)` skips one, bullets are hints) and `content/ideas/_index.md` (whose `cascade: draft: true` guards the section).
+- The ten generated idea files were deliberately left untracked as a weekly-turnover working queue.
+
+**Verification:**
+- `make preflight` clean on Hugo 0.165.0+extended (84 pages).
+- `find public -path '*idea*'` returns nothing, so the claim that the ideas section cannot publish is checked against a real build rather than read off the config.
+
+**Decisions:**
+- **The task lives in Cowork, not in this repo.** It cannot be grepped, diffed, reviewed, or version-controlled from a checkout, and nothing here fails if its instructions drift — so changing how ideas are generated is an edit in the Cowork UI, not a commit. Same shape as the HistoryLessonGenerator arrangement documented in `~/Projects/CLAUDE.md`.
+- **The description convention is duplicated inside the Cowork prompt**, because the task cannot read `CLAUDE.md` by reference. Changing the convention here alone will quietly let generated ideas drift from house style. Recorded in `CLAUDE.md` so the duplication is discoverable from the side most likely to be edited.
+- **Two independent mechanisms keep `content/ideas/` unpublished, and both are load-bearing:** the section's `cascade: draft: true` (drafts are dropped by the production build, which runs without `-D`), and `params.mainSections = ["posts"]` (keeps the section out of the homepage list, RSS, and Congo's article listings). Documented as a pair specifically so neither is "simplified" away later on the grounds that the other covers it.
+- **`beat:` in idea frontmatter is provenance only** — not a Hugo or Congo parameter, nothing renders it, and it gets dropped when an idea is promoted to a post.
+
+**Observed, not acted on:**
+- The idea count went from 5 to 10 files *during* the session — a run landed between the initial `ls` and the commit, matching a "today at 9:35 AM" entry in the job's history. Today is a Thursday, so the job is firing more often than its stated Monday schedule. Left alone; worth a look at the Cowork task's trigger config if five per week was the intent.
+- `CLAUDE.md` states the CI Hugo version is **0.164.0 extended**, but this machine builds with **0.165.0+extended**. Pre-existing local/CI drift, unrelated to this change, so it was not touched here.
