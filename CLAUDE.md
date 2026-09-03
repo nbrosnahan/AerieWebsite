@@ -59,7 +59,19 @@ the site. No bare URLs, no markdown links, and no editorializing or verdict
 link plus commentary, describe *what's being linked* in words; the link
 itself belongs in the post body, where it's clickable and has context.
 
-Hugo version in CI: **0.164.0 extended**.
+**Hugo versions — CI and this machine are not the same build.** CI pins
+**0.164.0 extended**, set as `HUGO_VERSION` in `.github/workflows/deploy.yml`
+and installed there as a checksum-verified `.deb`; that value is the one the
+published site is actually built with. This machine runs Homebrew's
+**0.165.0+extended+withdeploy**, which is what `make run-site` and
+`make preflight` use.
+
+So a green local `make preflight` is evidence about 0.165.0, not about the
+binary that builds production. The two have not diverged in a way that has
+broken anything so far, and bumping `HUGO_VERSION` is a deliberate edit to
+`deploy.yml` (the checksum step's asset naming is tied to it) rather than
+something to sync casually — but when a build behaves differently in CI than
+it does locally, this gap is the first thing to check.
 
 ## Architecture
 
