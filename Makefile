@@ -1,6 +1,8 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help build-site run-site new-post check-post-names clean preflight
+.PHONY: help build-site run-site new-post check-post-names clean preflight lint-markdown lint-markdown-fix
+
+MARKDOWNLINT_CONFIG := $(HOME)/.claude/.markdownlint-cli2.jsonc
 
 help: ## Print available targets with one-line descriptions
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -45,29 +47,68 @@ new-post: ## Create a new post from the archetype (TITLE=<slug> required)
 		echo "  Example: make new-post TITLE=my-first-post"; \
 		exit 1; \
 	fi
-	@# Posts are named YYYY-MM-DD-<slug>.md. The date is only a filing prefix:
-	@# the archetype strips it back off into the slug: field, so the URL stays
-	@# /posts/<slug>/. Pass TITLE without a date.
-	hugo new posts/$$(date +%F)-$(TITLE).md
+	@# Posts are filed under content/posts/<YYYY>/YYYY-MM-DD-<slug>.md -- the
+	@# year directory is on-disk filing only (no _index.md, so it is not a
+	@# Hugo section) and the date is only a filing prefix within it: the
+	@# archetype strips both back off into the slug: field, and
+	@# config/_default/hugo.toml's [permalinks.page] block strips the year
+	@# back out of the URL, so the URL stays /posts/<slug>/. Pass TITLE
+	@# without a date. `hugo new` creates the year directory on its own.
+	hugo new posts/$$(date +%Y)/$$(date +%F)-$(TITLE).md
 
-# Guards the YYYY-MM-DD- filename convention. It needs guarding because
-# nothing else catches a violation: `hugo new posts/<name>.md` with an
-# undated name produces a perfectly valid post (the archetype only STRIPS a
-# date prefix, it cannot add one -- an archetype cannot rename its own
-# file), new posts are draft: true so a build never renders them, and once
-# published the slug: field means the URL is correct anyway. Only
-# `make new-post` applies the prefix, so this is what makes the convention
-# hold for files created any other way.
+# Guards the content/posts/<YYYY>/YYYY-MM-DD-<slug> layout. It needs
+# guarding because nothing else catches a violation: `hugo new
+# posts/<year>/<name>.md` with an undated name or a mismatched year
+# produces a perfectly valid post (the archetype only STRIPS a date
+# prefix, it cannot add one, and it has no idea which directory it was
+# invoked under), new posts are draft: true so a build never renders
+# them, and once published the slug: field means the URL is correct
+# regardless. Only `make new-post` applies the convention, so this is
+# what makes it hold for files created any other way.
 #
-# _index.md is the section list page, not a post, and is exempt.
-check-post-names: ## Verify every post filename is YYYY-MM-DD-<slug>
-	@bad=$$(find content/posts -mindepth 1 -maxdepth 1 \
+# _index.md is the section list page, not a post, and is exempt at the
+# top level of content/posts/ -- but forbidden inside a year directory:
+# an _index.md there promotes that directory to a real Hugo section
+# (config/_default/hugo.toml's [permalinks.page] block strips the year
+# back out of a post's URL, but that only works because the year
+# directory is otherwise just a path segment, not a section). A section
+# would generate /posts/<year>/ archive pages and make Congo's list.html
+# render .Pages as year links instead of posts -- so this is checked
+# explicitly, not left to fall out of the other rules.
+check-post-names: ## Verify every post lives at content/posts/<YYYY>/YYYY-MM-DD-<slug>, with no _index.md in a year dir
+	@status=0; \
+	bad_top=$$(find content/posts -mindepth 1 -maxdepth 1 \
 		! -name '_index.md' \
-		! -name '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*' \
+		! -name '[0-9][0-9][0-9][0-9]' \
 		-print); \
-	if [ -n "$$bad" ]; then \
-		echo "ERROR: post filenames must be YYYY-MM-DD-<slug>:" >&2; \
-		echo "$$bad" | sed 's/^/  /' >&2; \
+	if [ -n "$$bad_top" ]; then \
+		echo "ERROR: content/posts/ may only contain _index.md and YYYY year directories:" >&2; \
+		echo "$$bad_top" | sed 's/^/  /' >&2; \
+		status=1; \
+	fi; \
+	for yeardir in content/posts/[0-9][0-9][0-9][0-9]; do \
+		[ -d "$$yeardir" ] || continue; \
+		year=$$(basename "$$yeardir"); \
+		if [ -e "$$yeardir/_index.md" ]; then \
+			echo "ERROR: $$yeardir/_index.md is forbidden -- an _index.md inside a year directory promotes it to a real Hugo section, generating /posts/$$year/ archive pages and making Congo's list.html render year links instead of posts." >&2; \
+			status=1; \
+		fi; \
+		for entry in $$(find "$$yeardir" -mindepth 1 -maxdepth 1 ! -name '_index.md' -print); do \
+			name=$$(basename "$$entry"); \
+			case "$$name" in \
+				[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*) \
+					entryyear=$${name%%-*}; \
+					if [ "$$entryyear" != "$$year" ]; then \
+						echo "ERROR: $$entry's date prefix ($$entryyear) does not match its year directory ($$year)" >&2; \
+						status=1; \
+					fi ;; \
+				*) \
+					echo "ERROR: $$entry does not match YYYY-MM-DD-<slug>" >&2; \
+					status=1 ;; \
+			esac; \
+		done; \
+	done; \
+	if [ "$$status" -ne 0 ]; then \
 		echo "" >&2; \
 		echo "Create posts with: make new-post TITLE=<slug>" >&2; \
 		exit 1; \
@@ -76,6 +117,12 @@ check-post-names: ## Verify every post filename is YYYY-MM-DD-<slug>
 
 clean: ## Remove public/ and resources/_gen
 	rm -rf public resources/_gen
+
+lint-markdown: ## Lint every Markdown file — zero warnings required
+	markdownlint-cli2 --config $(MARKDOWNLINT_CONFIG) 'content/**/*.md' '!content/ideas/_previous/**'
+
+lint-markdown-fix: ## Auto-fix fixable Markdown issues (rewrites files in place)
+	markdownlint-cli2 --fix --config $(MARKDOWNLINT_CONFIG) 'content/**/*.md' '!content/ideas/_previous/**'
 
 # The steps are chained with && rather than ;. With ; a failing step only
 # prints its error and preflight carries on, exiting 0 on the strength of
@@ -88,5 +135,6 @@ preflight: ## Pre-merge gate: clean + check-post-names + build-site (skip with S
 	else \
 		$(MAKE) clean && \
 		$(MAKE) check-post-names && \
-		$(MAKE) build-site; \
+		$(MAKE) build-site && \
+		$(MAKE) lint-markdown; \
 	fi

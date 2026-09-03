@@ -8,7 +8,8 @@ categories: ["Advocacy"]
 draft: false
 slug: "license-to-kill"
 ---
-If you haven’t read the CalMatters article about how the DMV is complicit in keeping killer drivers on the road after multiple collisions and even after multiple deaths caused by those collisions, you may want to give it a read.
+If you haven’t read the CalMatters article about how the DMV is complicit in keeping killer drivers on the road after
+multiple collisions and even after multiple deaths caused by those collisions, you may want to give it a read.
 
 [https://calmatters.org/investigation/2025/04/license-to-kill/](https://calmatters.org/investigation/2025/04/license-to-kill/)
 

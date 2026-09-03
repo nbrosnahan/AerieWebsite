@@ -44,3 +44,18 @@ enableRobotsTXT = true
 [privacy]
   [privacy.youtube]
     privacyEnhanced = true
+
+# Posts are filed on disk under content/posts/<year>/ purely for on-disk
+# organization (see CLAUDE.md's "Post filenames and URLs" section) -- the
+# year directory carries no _index.md, so it is not a Hugo section and
+# .Section/.Type stay "posts". Without this block Hugo would still publish
+# each post one path segment deeper than before, at /posts/<year>/<slug>/,
+# because slug: only ever sets the final path segment, never the segments
+# above it. This [permalinks.page] entry is what strips the year back out,
+# so every post keeps publishing at /posts/<slug>/ exactly as it did when
+# the files lived flat in content/posts/. Removing this block, or mistyping
+# the pattern, silently changes every post URL -- the build stays clean and
+# reports no error, and every inbound link 404s.
+[permalinks]
+  [permalinks.page]
+    posts = "/posts/:slug/"

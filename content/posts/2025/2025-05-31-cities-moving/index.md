@@ -8,7 +8,8 @@ categories: ["Advocacy"]
 draft: false
 slug: "cities-moving"
 ---
-[citiesmoving.com](https://citiesmoving.com) is a nifty site that compares the mobility of a city’s people across active mobility, public transit, and private cars.
+[citiesmoving.com](https://citiesmoving.com) is a nifty site that compares the mobility of a city’s people across active
+mobility, public transit, and private cars.
 
 Not a surprise, but it’s pretty clear that San Francisco has a lot of work to do here:
 

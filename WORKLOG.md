@@ -459,7 +459,7 @@ output looks like a stray untracked file to the next person opening the working 
   idea file format, and how to promote an idea into a post.
 - Two new architecture-table rows (`BEATS.md`, `content/ideas/`) and a pointer in the Commands → Authoring loop section,
   so the Commands section reflects that posts have a second origin besides `make new-post`.
-- Started tracking `BEATS.md` (the job's only hand-editable configuration surface — each `## ` heading is a beat,
+- Started tracking `BEATS.md` (the job's only hand-editable configuration surface — each `##` heading is a beat,
   `(paused)` skips one, bullets are hints) and `content/ideas/_index.md` (whose `cascade: draft: true` guards the
   section).
 - The ten generated idea files were deliberately left untracked as a weekly-turnover working queue.
@@ -633,3 +633,59 @@ is how a future session ends up deleting it as cruft.
   reaches them like any other descendant. Removing that cascade would publish this directory too, which is worth knowing
   before anyone treats the underscore as the safeguard.
 - Confirmed against the current build: nothing under `content/ideas/` reaches `public/`.
+
+## 2026-09-03 — File posts into per-year subdirectories, URLs unchanged
+
+**Goal:** `content/posts/` had grown to 14 dated entries in a single flat directory; file them into per-year
+subdirectories (`content/posts/2025/`, `content/posts/2026/`) for on-disk organization, without changing a single
+published URL.
+
+**Done:**
+
+- `git mv`'d all 14 posts (12 flat files, 2 page bundles) from `content/posts/YYYY-MM-DD-<slug>` into
+  `content/posts/<YYYY>/YYYY-MM-DD-<slug>` — filenames unchanged, only the containing directory moves.
+  `content/posts/_index.md` stays at the top level. No `_index.md` was added to either year directory.
+- `config/_default/hugo.toml`: added a `[permalinks.page]` block (`posts = "/posts/:slug/"`) to strip the year filing
+  directory back out of published URLs, with an inline comment explaining why it's needed and what breaks silently
+  without it.
+- `Makefile`: `new-post` now creates `posts/$(date +%Y)/$(date +%F)-<slug>.md` (verified `hugo new` creates the
+  intermediate year directory on its own — no `mkdir -p` needed). `check-post-names` rewritten to validate the two-level
+  `content/posts/<YYYY>/YYYY-MM-DD-<slug>` shape: it now rejects a stray top-level entry that isn't `_index.md` or a
+  4-digit year directory, an entry inside a year directory that doesn't match `YYYY-MM-DD-*`, an entry whose date prefix
+  doesn't match its containing year directory, and — checked explicitly, with its own error message — an `_index.md`
+  placed inside a year directory.
+- `CLAUDE.md`: updated every reference to the flat layout (Commands code block, "Post filenames and URLs", the
+  architecture table's `Makefile`/`config/_default/hugo.toml`/page-bundle rows, "URL scheme: Hugo defaults", "Promoting
+  an idea to a post") and added two durable warnings — the `[permalinks.page]` block is load-bearing and its removal or
+  mistyping silently breaks every post URL with no build error, and an `_index.md` inside a year directory silently
+  promotes it to a real Hugo section. Also recorded the positive finding that makes the whole layout free: a nested
+  directory with no `_index.md` is not a Hugo section, so `.Section`/`.Type` stay `posts` and the homepage list, RSS,
+  `mainSections`, and the search index are all unaffected.
+
+**Verification:**
+
+- Built the working tree both before and after the reorganization (the "before" build used a scratch copy with the year
+  directories flattened back out and the `[permalinks.page]` block removed, so it reflects the exact pre-change layout
+  including the in-flight, uncommitted markdownlint fix to `ravenswatch.md` already in the working tree) — `diff -rq`
+  over both `public/` trees reports **zero differences across all 188 files**.
+- All five `check-post-names` failure/pass cases exercised directly: a stray top-level file, a malformed entry name
+  inside a year directory, an entry whose date prefix disagrees with its year directory, an `_index.md` inside a year
+  directory (each fails with a distinct, targeted error message), and the corrected layout (passes, "Post filenames
+  OK.").
+- `make new-post TITLE=<slug>` exercised end-to-end: produced `content/posts/2026/2026-09-03-layout-probe.md` with
+  correct `title:`/`slug:`. Probe deleted.
+- `make preflight` passes (84 pages). `markdownlint-cli2` run against both this file and `CLAUDE.md` with zero warnings.
+- Confirmed no `_index.md` exists in either year directory and that `content/posts/_index.md` is untouched.
+- `git status --short` shows every moved post as a rename (`R`/`RM`), and the pre-existing uncommitted markdown-lint
+  work (`.markdownlint-cli2.jsonc`, the `Makefile`'s `lint-markdown` targets, `content/ideas/_index.md`,
+  `content/posts/2025/2025-04-02-ravenswatch.md`) was left exactly as found.
+
+**Decisions:**
+
+- **A year directory with no `_index.md` is not a Hugo section** — it's just a path segment, so `.Section`/`.Type` on
+  every post stay `posts`, `.Pages` on `/posts/` still returns all 14 posts, and no `/posts/<YYYY>/` archive page is
+  generated. This is what makes the reorganization free; it was verified empirically (see above) rather than assumed
+  from Hugo's docs.
+- **Filenames keep their full `YYYY-MM-DD-` prefix inside the year directory** rather than dropping the year now that
+  it's redundant with the containing directory — changing filenames again would be unrelated churn on top of this move,
+  and the prefix still sorts correctly within each year.

@@ -16,3 +16,7 @@ Thumbs.db
 # Claude Code local config — settings.json (sandbox policy) is tracked
 .claude/*
 !.claude/settings.json
+
+# Ignore the ideas
+content/ideas/*.md
+content/ideas/_previous/*.md

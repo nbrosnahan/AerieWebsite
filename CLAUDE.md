@@ -25,7 +25,7 @@ All common tasks go through the `Makefile`. Run `make` (or `make help`) with no 
 # Serve locally with drafts enabled, open in Safari once ready
 make run-site
 
-# Create a new post from the archetype (content/posts/YYYY-MM-DD-<slug>.md)
+# Create a new post from the archetype (content/posts/YYYY/YYYY-MM-DD-<slug>.md)
 make new-post TITLE=my-first-post
 
 # Production build (outputs to ./public/)
@@ -34,7 +34,7 @@ make build-site
 # Remove build artifacts (public/, resources/_gen)
 make clean
 
-# Verify every post filename is YYYY-MM-DD-<slug> (runs inside preflight)
+# Verify every post lives at content/posts/YYYY/YYYY-MM-DD-<slug> (runs inside preflight)
 make check-post-names
 
 # Pre-merge gate: clean + check-post-names + build-site (skip with SKIP_PREFLIGHT=1)
@@ -48,33 +48,48 @@ builds with `hugo --gc --minify`, so drafts stay unpublished on the live site.
 `make run-site` previews it locally since drafts are rendered; the post stays out of the production build until
 `draft: true` is flipped to `false` in its frontmatter; deploying is a push to `main`.
 
-**Post filenames and URLs.** Posts are named `content/posts/YYYY-MM-DD-<slug>.md` (or the bundle directory
-`content/posts/YYYY-MM-DD-<slug>/`), matching the convention already used in `content/ideas/`. The date prefix is
-**filing only — it never reaches the URL**: each post carries an explicit `slug:` field, and that is what Hugo publishes
-at. `2025-04-23-ai-2027.md` serves `/posts/ai-2027/`.
+**Post filenames and URLs.** Posts are filed at `content/posts/YYYY/YYYY-MM-DD-<slug>.md` (or the bundle directory
+`content/posts/YYYY/YYYY-MM-DD-<slug>/`) — a year directory, on-disk only, containing files that still carry the full
+dated prefix, matching the convention already used in `content/ideas/`. Both the year directory and the date prefix are
+**filing only — neither reaches the URL**: each post carries an explicit `slug:` field, and that is what Hugo publishes
+at. `content/posts/2025/2025-04-23-ai-2027.md` serves `/posts/ai-2027/`.
 
-This split is deliberate and both halves are load-bearing:
+This split is deliberate and every part of it is load-bearing:
 
-- **Renaming a file changes nothing about the URL** — it only changes disk order. To change a URL, edit `slug:`.
+- **Renaming a file, or moving it between year directories, changes nothing about the URL** — it only changes disk
+  order. To change a URL, edit `slug:`.
 - **Do not try to make Hugo derive the URL from a dated filename.** Setting `[frontmatter] date = [":filename", ...]`
   does strip the prefix, but only by making the filename the authoritative date, which discards the time of day from
   `date:`. Four dates on this site carry multiple posts (four on 2025-04-05 alone), and without times they fall back to
   alphabetical order — verified to reorder 11 of the 14 posts. The `slug:` field avoids this entirely. Do not
   re-litigate it.
+- **The year directory relies on a `[permalinks.page]` block in `config/_default/hugo.toml`** to strip the year segment
+  back out of the URL — see *URL scheme* under Content Migration below for the durable warning on that block. Without
+  it, `slug:` would only ever set the last path segment, and every post would publish one level deeper, at
+  `/posts/<YYYY>/<slug>/`.
+- **Never put an `_index.md` inside a year directory** — see the same warning below. It promotes that directory to a
+  real Hugo section and is the one mistake `make check-post-names` checks for explicitly, since nothing else would catch
+  it.
 
-`make new-post TITLE=<slug>` handles the prefix for you: pass an undated slug and it creates
-`posts/$(date +%F)-<slug>.md`, with `archetypes/default.md` stripping the date back off into both `title:` and `slug:`.
+`make new-post TITLE=<slug>` handles the year directory and the date prefix for you: pass an undated slug and it creates
+`posts/$(date +%Y)/$(date +%F)-<slug>.md` (`hugo new` creates the intermediate year directory on its own), with
+`archetypes/default.md` stripping the date back off into both `title:` and `slug:`.
 
-**`make new-post` is the only command that applies the prefix**, and `make check-post-names` (folded into `preflight`)
-is what enforces it everywhere else. The guard is not decoration — nothing else catches a violation:
+**`make new-post` is the only command that applies the year-directory + prefix layout**, and `make check-post-names`
+(folded into `preflight`) is what enforces it everywhere else. The guard is not decoration — nothing else catches a
+violation:
 
-- **Hugo cannot add the prefix itself.** `hugo new posts/<name>.md` writes exactly the path it is given; no Hugo setting
-  rewrites that path, and an archetype controls only a file's *contents*, never its name. An archetype can strip a date
-  prefix, as this one does, but can never add one.
+- **Hugo cannot add the prefix, or the year directory, itself.** `hugo new posts/<name>.md` writes exactly the path it
+  is given; no Hugo setting rewrites that path, and an archetype controls only a file's *contents*, never its name or
+  location. An archetype can strip a date prefix, as this one does, but can never add one, and it has no way to know
+  which year directory it was invoked under.
 - **A build will not flag it.** New posts are `draft: true`, so a production build never renders them; and once
-  published, `slug:` means the URL is correct regardless of the filename. An undated post is invisibly valid.
+  published, `slug:` means the URL is correct regardless of the filename or which year directory holds it. An undated
+  post, or one filed under the wrong year, is invisibly valid.
 
-The check covers page-bundle directories as well as flat files, and exempts `_index.md`.
+The check covers page-bundle directories as well as flat files, exempts `_index.md` at the top level of
+`content/posts/`, and — separately — forbids `_index.md` inside any year directory (see the durable warning under *URL
+scheme* below).
 
 Post *ideas* arrive on their own schedule: a weekly Cowork job drops five researched topic prompts into `content/ideas/`
 every Monday morning, and promoting one is a different starting point than `make new-post` — see Idea Pipeline below.
@@ -110,8 +125,8 @@ CSS (pulled in as a Hugo Module) drive the shell, list pages, single pages, taxo
 locally is configuration and the one supported theme-extension point:
 
 | File | Purpose |
-|------|---------|
-| `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post` (prepends today's date to `TITLE`), `check-post-names`, `clean`, `preflight`, `help` |
+| ------ | --------- |
+| `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post` (files `TITLE` under today's year directory with today's date prefix), `check-post-names` (validates the `content/posts/YYYY/YYYY-MM-DD-<slug>` layout), `clean`, `preflight`, `help` |
 | `go.mod` / `go.sum` | Pin the Congo theme as a Hugo Module at the upstream release tag `v2.14.0` — see Theme Management below |
 | `LICENSE` | Proprietary, all-rights-reserved — not Apache 2.0. The written content is the asset here, not open-source code, so this repo deliberately departs from this org's usual public-repo licensing default |
 | `config/_default/` | **All site configuration.** Congo expects its config split across this directory rather than a single root `hugo.toml`; there is no root `hugo.toml` in this repo — see the file-by-file breakdown below |
@@ -121,8 +136,8 @@ locally is configuration and the one supported theme-extension point:
 | `archetypes/default.md` | Frontmatter template for `hugo new`. Strips the `YYYY-MM-DD-` prefix off the filename into both `title:` and `slug:`, so a dated filename yields an undated title and URL |
 | `layouts/robots.txt` | Congo's supported robots.txt override point (module ships its own template at the same relative path). Emits the site's AI-crawler policy — see Robots.txt / AI-Crawler Policy below. Requires `enableRobotsTXT = true` in `hugo.toml` or Hugo never renders it |
 | `scripts/migrate-wordpress.py` | **HISTORICAL — do not re-run.** The one-time WordPress→Hugo migration, completed 2026-07-18. It emits WordPress-era conventions (explicit `slug:` fields, flat `static/images/` paths, excerpt-derived descriptions) that the site has since abandoned; re-running it would reintroduce them and overwrite hand-written descriptions. Kept for the record only |
-| `content/posts/YYYY-MM-DD-<slug>/` | **Page bundles.** Posts that carry images are directories: `index.md` plus the image files alongside it, referenced bundle-relatively as `{{< figure src="<file>" >}}`. Posts without images stay as flat `content/posts/YYYY-MM-DD-<slug>.md`. The date prefix is filing only — the URL comes from `slug:` (see Post filenames and URLs above). Post/page images live in bundles, not `static/` — the only thing in `static/` is `favicon.ico` (see Icon Overrides below) |
-| `BEATS.md` | The list of topics the weekly Cowork idea generator researches — one `## ` heading per beat, `(paused)` in a heading skips it, bullets under it are hints. This is the whole hand-editable configuration surface for that job; see Idea Pipeline below |
+| `content/posts/YYYY/YYYY-MM-DD-<slug>/` | **Page bundles.** Posts that carry images are directories: `index.md` plus the image files alongside it, referenced bundle-relatively as `{{< figure src="<file>" >}}`. Posts without images stay as flat `content/posts/YYYY/YYYY-MM-DD-<slug>.md`. The year directory and the date prefix are both filing only — the URL comes from `slug:` (see Post filenames and URLs above). Post/page images live in bundles, not `static/` — the only thing in `static/` is `favicon.ico` (see Icon Overrides below) |
+| `BEATS.md` | The list of topics the weekly Cowork idea generator researches — one `##` heading per beat, `(paused)` in a heading skips it, bullets under it are hints. This is the whole hand-editable configuration surface for that job; see Idea Pipeline below |
 | `content/ideas/` | The idea queue that job writes into — never published. `_index.md` sets `cascade: draft: true` over the whole section; see Idea Pipeline below |
 | `.github/dependabot.yml` | Weekly `gomod` + `github-actions` update checks. The `gomod` entry is what bumps the Congo theme pin (`go.mod`), since the theme is consumed as a Hugo Module; the `github-actions` entry bumps the SHA-pinned actions in `deploy.yml` — see Deployment below |
 
@@ -133,8 +148,8 @@ own `config/_default/` inside the module, merged in at lower priority, so a key 
 overridden by the theme's default.
 
 | File | Holds |
-|------|-------|
-| `config/_default/hugo.toml` | Core Hugo settings: `baseURL`, `defaultContentLanguage`, `[taxonomies]` (`tag`/`category` — the URLs depend on these), `[pagination]` `pagerSize = 20`, `[outputs] home = ["HTML", "RSS", "JSON"]` (the search index, see Search below), `[privacy] [privacy.youtube] privacyEnhanced = true` (makes the built-in `{{< youtube >}}` shortcode, used only by `content/posts/2025-04-05-superman-sneak-peek.md`, emit `youtube-nocookie.com` instead of `www.youtube.com`), and the `[module]` block importing Congo. No explicit `mounts` — Congo's default mounts are used as-is (see Icon Overrides below for why) |
+| ------ | ------- |
+| `config/_default/hugo.toml` | Core Hugo settings: `baseURL`, `defaultContentLanguage`, `[taxonomies]` (`tag`/`category` — the URLs depend on these), `[pagination]` `pagerSize = 20`, `[outputs] home = ["HTML", "RSS", "JSON"]` (the search index, see Search below), `[privacy] [privacy.youtube] privacyEnhanced = true` (makes the built-in `{{< youtube >}}` shortcode, used only by `content/posts/2025/2025-04-05-superman-sneak-peek.md`, emit `youtube-nocookie.com` instead of `www.youtube.com`), `[permalinks.page]` (strips the `content/posts/YYYY/` filing directory back out of published post URLs — see *URL scheme* under Content Migration below for the durable warning), and the `[module]` block importing Congo. No explicit `mounts` — Congo's default mounts are used as-is (see Icon Overrides below for why) |
 | `config/_default/languages.en.toml` | `title = "The Aerie"`, `locale`/`label`/`direction`, `params.description`, `params.mainSections`, `params.author.headline` (the tagline), and `params.author.links` (the profile block's social icons — Instagram, Flickr, GitHub, RSS, see Social Links below) |
 | `config/_default/params.toml` | Congo's theme parameters: appearance, `enableSearch`, `[header]`, `[footer]`, `[homepage]`, `[article]`, `[list]`, `[taxonomy]` |
 | `config/_default/menus.en.toml` | The main menu. In a `menus.<lang>.toml` file the menu name is the **top-level** key, so entries are `[[main]]`, not `[[menu.main]]` as they would be in `hugo.toml` |
@@ -171,7 +186,7 @@ Every icon path Congo's `static/` ships is overridden by an Aerie-branded file a
 under those six paths is Congo's placeholder:
 
 | Path | Source |
-|------|--------|
+| ------ | -------- |
 | `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png` | Generated at build time in `layouts/_partials/favicons.html` from `assets/images/aerie-icon.webp` via `resources.Get` + `.Resize` + `resources.Copy` |
 | `favicon.ico` | Committed as a static file, `static/favicon.ico` — Hugo resource pipelines can't emit multi-size `.ico`, so it's pre-generated and checked in rather than built |
 
@@ -297,7 +312,7 @@ edit in the Cowork UI, not a commit. What *is* in the repo is its input (`BEATS.
 
 Each run:
 
-1. Re-reads `BEATS.md` — every `## ` heading is one beat, headings containing `(paused)` are skipped, bullets under a
+1. Re-reads `BEATS.md` — every `##` heading is one beat, headings containing `(paused)` are skipped, bullets under a
    beat are hints rather than requirements. It never assumes last week's beats and it never edits this file, so
    `BEATS.md` is safe to hand-edit at any time and is the intended way to steer the job.
 2. Reads the filenames in `content/posts/` and `content/ideas/` so it doesn't hand over an idea that already exists or
@@ -373,14 +388,15 @@ Two independent mechanisms, and both are load-bearing enough to leave alone:
 
 ### Promoting an idea to a post
 
-Move the file to `content/posts/` (or a bundle directory if it will carry images). The idea's `YYYY-MM-DD-<slug>.md`
-name is already the right shape, but **re-date it to the post's publication date** — the generated name carries the date
-the *idea* was produced, which is rarely when the post ships.
+Move the file to `content/posts/<YYYY>/` (or a bundle directory at that path if it will carry images), where `<YYYY>` is
+the post's publication year. The idea's `YYYY-MM-DD-<slug>.md` name is already the right shape, but **re-date it to the
+post's publication date** — the generated name carries the date the *idea* was produced, which is rarely when the post
+ships, and the year directory it lands in must match that re-dated prefix.
 
-Then: add a `slug:` field (this is what sets the URL — the date prefix never reaches it, see *Post filenames and URLs*
-above), flip `draft` to `false`, drop the `beat:` key, and delete the `## Prompt` / `## Why now` / `## Angles` /
-`## Links` / `## Prior art` scaffolding. Rewrite `description:` for the finished post — the generated one describes the
-*idea*, not the piece.
+Then: add a `slug:` field (this is what sets the URL — neither the year directory nor the date prefix ever reaches it,
+see *Post filenames and URLs* above), flip `draft` to `false`, drop the `beat:` key, and delete the `## Prompt` /
+`## Why now` / `## Angles` / `## Links` / `## Prior art` scaffolding. Rewrite `description:` for the finished post — the
+generated one describes the *idea*, not the piece.
 
 ## Content Migration
 
@@ -390,11 +406,14 @@ The WordPress→Hugo content migration from the live brosnahan.org site is compl
 
 ### URL scheme: Hugo defaults (WordPress parity abandoned 2026-07-18)
 
-The site uses **Hugo's default permalinks**. The config carries no `[permalinks]` block, no `[permalinks.term]` block,
-and no `capitalizeListTitles` override:
+The site uses **Hugo's default permalinks**, with one exception: a `[permalinks.page]` block in
+`config/_default/hugo.toml` exists solely to strip the `content/posts/YYYY/` on-disk filing directory back out of post
+URLs (added when posts were reorganized into per-year subdirectories; see *Post filenames and URLs* under Commands
+above). It is **not** a return to WordPress-style dated URLs — published URLs are unchanged from before that
+reorganization. The config carries no `[permalinks.term]` block and no `capitalizeListTitles` override:
 
 | Content | URL |
-|---------|-----|
+| --------- | ----- |
 | Posts | `/posts/<slug>/` |
 | Tags | `/tags/<slug>/` |
 | Categories | `/categories/<slug>/` |
@@ -404,10 +423,25 @@ The owner **deliberately abandoned WordPress URL parity on 2026-07-18** and acce
 URLs now 404: dated post permalinks (`/YYYY/MM/DD/<slug>/`), singular term paths (`/tag/<slug>/`, `/category/<slug>/`),
 `/who-am-i/`, date archives (`/YYYY/MM/`), and `/feed/`.
 
-**Post filenames are `YYYY-MM-DD-<slug>.md`, and every post carries an explicit `slug:` field** — see *Post filenames
-and URLs* under Commands above. The date is a filing prefix only; `slug:` is what sets the URL, so
-`content/posts/2025-04-23-ai-2027.md` publishes at `/posts/ai-2027/`. **To change a post's URL, edit its `slug:`** —
-renaming the file changes only how it sorts on disk.
+**Posts are filed at `content/posts/YYYY/YYYY-MM-DD-<slug>.md`, and every post carries an explicit `slug:` field** — see
+*Post filenames and URLs* under Commands above. Both the year directory and the date prefix are filing only; `slug:` is
+what sets the URL, so `content/posts/2025/2025-04-23-ai-2027.md` publishes at `/posts/ai-2027/`. **To change a post's
+URL, edit its `slug:`** — renaming the file, or moving it to a different year directory, changes only how it sorts on
+disk.
+
+Two durable warnings, both load-bearing precisely because each fails **silently** — a clean build reports no error
+either way:
+
+- **The `[permalinks.page]` block in `config/_default/hugo.toml` is load-bearing.** Remove it, or mistype the
+  `posts = "/posts/:slug/"` pattern, and every post URL silently gains a `/YYYY/` segment, breaking every inbound link —
+  with a clean build and no error.
+- **Never put an `_index.md` inside a year directory** (`content/posts/YYYY/_index.md`). A nested directory with no
+  `_index.md` is not a Hugo section — it's just a path segment, which is exactly why this layout costs nothing:
+  `.Section`/`.Type` stay `posts`, so the homepage list, RSS, `params.mainSections`, and the search index are all
+  unaffected. Adding an `_index.md` changes that: it promotes the year directory to a real Hugo section,
+  `/posts/<YYYY>/` archive pages appear, and Congo's `list.html` (which renders `.Pages`) would list two year links on
+  `/posts/` instead of the posts themselves. `make check-post-names` enforces this — see the Makefile architecture row
+  above.
 
 This reverses an earlier rule that posts should carry no `slug:` field. That rule was written against
 `scripts/migrate-wordpress.py`, which emitted `slug:` values that merely restated the filename and were therefore pure
@@ -424,10 +458,11 @@ tag would render lowercase in headings.
 
 **Decisions made:**
 
-- **Images** live in **page bundles**: a post with images is a directory (`content/posts/YYYY-MM-DD-<slug>/index.md`)
-  with its images beside it, referenced bundle-relatively (`{{< figure src="<file>" >}}`). Two posts carry images
-  (`2025-05-31-cities-moving`, 3; `2026-04-13-i-got-tired-of-changing-batteries`, 5). Post/page media does not use
-  `static/`. Media pulled from WordPress was the ORIGINAL files, not the resized/`.avif` derivatives.
+- **Images** live in **page bundles**: a post with images is a directory
+  (`content/posts/YYYY/YYYY-MM-DD-<slug>/index.md`) with its images beside it, referenced bundle-relatively
+  (`{{< figure src="<file>" >}}`). Two posts carry images (`2025/2025-05-31-cities-moving`, 3;
+  `2026/2026-04-13-i-got-tired-of-changing-batteries`, 5). Post/page media does not use `static/`. Media pulled from
+  WordPress was the ORIGINAL files, not the resized/`.avif` derivatives.
 - **Embeds:** one post (`2025-04-05-superman-sneak-peek`) contained a YouTube iframe, converted to Hugo's built-in
   `{{< youtube >}}` shortcode. Figures use the built-in `{{< figure >}}` shortcode. Both avoid needing
   `markup.goldmark.renderer.unsafe`.
@@ -504,7 +539,7 @@ site's own certificate provisioning has already behaved once (see below), so the
 DNS points the domain at GitHub Pages using GitHub's documented apex-plus-`www` pattern:
 
 | Record | Value |
-|--------|-------|
+| -------- | ------- |
 | `brosnahan.org` A | 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153 |
 | `brosnahan.org` AAAA | 2606:50c0:8000::153, 2606:50c0:8001::153, 2606:50c0:8002::153, 2606:50c0:8003::153 |
 | `www` CNAME | `nbrosnahan.github.io` |
@@ -565,7 +600,7 @@ The domain receives mail but sends none — there is no mailbox, no SMTP submiss
 *as* `brosnahan.org`. MX records point at Namecheap's free email-forwarding service:
 
 | Priority | Host |
-|----------|------|
+| ---------- | ------ |
 | 10 | eforward1.registrar-servers.com |
 | 10 | eforward2.registrar-servers.com |
 | 10 | eforward3.registrar-servers.com |
