@@ -22,7 +22,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      HUGO_VERSION: "0.164.0"
+      HUGO_VERSION: "0.165.0"
     steps:
       # This is the one point where the deploy pipeline trusts the network:
       # the .deb is fetched over plain wget with no built-in integrity check,
