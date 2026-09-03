@@ -6,6 +6,7 @@ description: "A San Francisco Chronicle piece on the city’s housing rezoning p
 tags: ["Housing", "SF"]
 categories: ["Advocacy"]
 draft: false
+slug: "sf-is-still-mostly-empty-above-40"
 ---
 Yes.  Do this.  Encourage building more housing in SF.
 

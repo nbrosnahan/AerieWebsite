@@ -6,6 +6,7 @@ description: "DC released a sneak peek for the upcoming Superman movie"
 tags: ["Movies", "Superman"]
 categories: ["Entertainment"]
 draft: false
+slug: "superman-sneak-peek"
 ---
 DC released a sneak peek for the upcoming Superman movie.  It’s amusing.
 

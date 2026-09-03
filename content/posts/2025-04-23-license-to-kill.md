@@ -6,6 +6,7 @@ description: "The DMV keeps drivers on the road even after deaths"
 tags: ["Driving", "Safety"]
 categories: ["Advocacy"]
 draft: false
+slug: "license-to-kill"
 ---
 If you haven’t read the CalMatters article about how the DMV is complicit in keeping killer drivers on the road after multiple collisions and even after multiple deaths caused by those collisions, you may want to give it a read.
 

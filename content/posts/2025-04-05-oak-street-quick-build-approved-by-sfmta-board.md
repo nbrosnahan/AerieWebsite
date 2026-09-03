@@ -6,6 +6,7 @@ description: "SFMTA approved a protected bikeway on Oak Street"
 tags: ["Safety", "SF"]
 categories: ["Advocacy"]
 draft: false
+slug: "oak-street-quick-build-approved-by-sfmta-board"
 ---
 This is good news.  There will be a new protected bikeway built next to the Panhandle on Oak Street in the eastbound direction (on the left side this time) to mirror the one that was put in on Fell Street (westbound).
 

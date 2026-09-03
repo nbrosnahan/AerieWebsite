@@ -6,6 +6,7 @@ description: "San Francisco has a lot of work to do on transportation"
 tags: ["Cycling", "Driving", "Public Transit", "Transportation"]
 categories: ["Advocacy"]
 draft: false
+slug: "cities-moving"
 ---
 [citiesmoving.com](https://citiesmoving.com) is a nifty site that compares the mobility of a city’s people across active mobility, public transit, and private cars.
 

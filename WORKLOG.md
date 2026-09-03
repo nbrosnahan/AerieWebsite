@@ -230,3 +230,25 @@ was being retired, and into the project itself.
 - **Hugo is not preinstalled on `ubuntu-latest`**, so "just use the runner's copy" is not an available option.
 - **No tooling can watch this pin.** Dependabot's `github-actions` ecosystem tracks `uses:` refs, not arbitrary env vars, so it cannot see `HUGO_VERSION`; switching to a setup action would not help either, since Dependabot would bump the action rather than its `hugo-version` input. Noticing a Hugo release is therefore manual and always will be under this design. The drift that prompted this bump was caught by eye, not by a check.
 - **`withdeploy` is not worth chasing.** Homebrew installs `0.165.0+extended+withdeploy` while CI installs plain `extended`; the suffix only adds the `hugo deploy` command for S3/GCS targets, unused here since deployment goes through Actions to Pages. Exact parity between the two is therefore unattainable and doesn't matter.
+
+## 2026-09-03 — Date-prefix post filenames; decouple filename from URL via `slug:`
+
+**Goal:** Adopt `YYYY-MM-DD-<slug>` filenames for posts, matching the convention already used in `content/ideas/`, without changing any published URL.
+
+**Done:**
+- Renamed all 14 posts (12 flat files, 2 page bundles) to `content/posts/YYYY-MM-DD-<slug>`, using each post's own frontmatter date. Done with `git mv`, so history follows the files and the bundle images move with their `index.md`.
+- Added an explicit `slug:` to every post, set to its pre-rename filename, which holds each URL exactly where it was.
+- `archetypes/default.md`: strips the `YYYY-MM-DD-` prefix off `.File.ContentBaseName` into a `$slug` variable used for both `title:` and a now-uncommented `slug:`. Without this a dated filename would generate the title "2025 04 23 Ai 2027".
+- `Makefile`: `new-post` now creates `posts/$$(date +%F)-$(TITLE).md`, so `TITLE` stays an undated slug.
+- `CLAUDE.md`: new "Post filenames and URLs" section under Commands; the URL-scheme section's no-`slug:` rule reversed with its rationale; stale `content/posts/<slug>` paths updated across the architecture table, the bundle/embed notes, and the idea-promotion steps.
+
+**Verification:**
+- All three approaches were built against the real content in a scratch copy before choosing one, and the chosen one was verified again in the repo: **all 79 published HTML paths, `index.xml`, and `sitemap.xml` are byte-identical to a build of `main`.** The rename is provably output-neutral.
+- `make new-post TITLE=archetype-probe` exercised end-to-end: produced `2026-09-03-archetype-probe.md` with `title: 'Archetype Probe'` and `slug: "archetype-probe"`. Probe deleted.
+- `make preflight` clean, 84 pages.
+
+**Decisions:**
+- **`slug:` on every post reverses the previous "posts carry no `slug:` field, and none should be added" rule.** That rule targeted `scripts/migrate-wordpress.py`, which emitted slugs that merely restated the filename. Under dated filenames the field is the only thing keeping the date out of the URL, so it now does real work.
+- **Rejected: `[frontmatter] date = [":filename", ":default"]`.** It strips the date prefix from the URL automatically and needs no `slug:` fields, which makes it look like the clean answer. It is not: the stripping only happens because Hugo takes the date *from* the filename, which then overrides frontmatter `date:` and discards the time of day. Four dates here carry multiple posts (four on 2025-04-05, three on 2025-04-01, two each on 2025-04-23 and 2025-05-31), and without times they sort alphabetically — measured to reorder 11 of the 14 posts. Recorded so this isn't re-proposed as a simplification.
+- **Rejected: dated filenames with dated URLs** (rename only, no `slug:`). Ordering and dates survive, but all 14 current URLs would 404 unless paired with `aliases:` on every post. These are the live, indexed URLs; churning them for a filing convention isn't worth it.
+- Historical `WORKLOG.md` entries still naming pre-rename paths were left alone — those filenames were accurate when written.

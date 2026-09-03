@@ -6,6 +6,7 @@ description: "SB 63 would fund Bay Area transit with a half-cent sales tax"
 tags: ["Funding", "Legislation"]
 categories: ["Advocacy"]
 draft: false
+slug: "sb-63-san-francisco-bay-area-local-revenue-measure-transportation-funding"
 ---
 There is a new California Senate Bill: [SB 63](https://legiscan.com/CA/text/SB63/2025) to create a more permanent funding source for Bay Area regional transportation. It’s a half-cent sales tax to keep public transit alive, especially transit agencies that are having financial trouble, like Caltrain, BART, and SF Muni.
 
