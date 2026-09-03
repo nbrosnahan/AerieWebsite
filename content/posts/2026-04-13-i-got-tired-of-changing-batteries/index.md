@@ -6,6 +6,7 @@ description: "Switching my Schlage smart lock to have a UPS"
 tags: ["Battery", "DIY", "Door Lock", "Home Automation", "Schlage", "UPS"]
 categories: ["IoT", "Tech"]
 draft: false
+slug: "i-got-tired-of-changing-batteries"
 ---
 I have a [Schlage Encode Plus Smart Wi-Fi Lock for Front Door](https://www.amazon.com/dp/B09RS3W7M5?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1).
 

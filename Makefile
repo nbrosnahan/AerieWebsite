@@ -45,7 +45,10 @@ new-post: ## Create a new post from the archetype (TITLE=<slug> required)
 		echo "  Example: make new-post TITLE=my-first-post"; \
 		exit 1; \
 	fi
-	hugo new posts/$(TITLE).md
+	@# Posts are named YYYY-MM-DD-<slug>.md. The date is only a filing prefix:
+	@# the archetype strips it back off into the slug: field, so the URL stays
+	@# /posts/<slug>/. Pass TITLE without a date.
+	hugo new posts/$$(date +%F)-$(TITLE).md
 
 clean: ## Remove public/ and resources/_gen
 	rm -rf public resources/_gen

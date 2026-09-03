@@ -6,6 +6,7 @@ description: "Signups are open for Silicon Valley Bicycle Coalition’s 5th annu
 tags: ["Cycling", "ECRR2025", "SVBC"]
 categories: ["Advocacy"]
 draft: false
+slug: "svbcs-2025-el-camino-real-ride"
 ---
 Signups are now OPEN for Silicon Valley Bicycle Coalition’s 5th Annual El Camino Real\
 Ride!

@@ -6,6 +6,7 @@ description: "A Dutch company builds bike parking platforms that fit in a single
 tags: ["Cycling"]
 categories: ["Advocacy"]
 draft: false
+slug: "fietsvlonders-are-awesome"
 ---
 I found this Dutch company that builds bike rack platforms that take up the space for a normal car parking space. It’s a wonderful idea. It essentially creates an 8-10x number of parking spots for bikes over a single car.  I think it’d be interesting for San Francisco to consider putting one of these on each block of the slow streets.
 

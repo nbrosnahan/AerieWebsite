@@ -6,6 +6,7 @@ description: "Ravenswatch is a rogue-like with nine very different characters an
 tags: ["Ravenswatch"]
 categories: ["Gaming"]
 draft: false
+slug: "ravenswatch"
 ---
 I don’t play a huge amount of video games, but I have to really recommend this one.  [Ravenswatch ](https://ravenswatch.com)is a rogue-like game with 9 different characters you can play (currently) with up to 4 people.  It’s highly social and engaging.
 

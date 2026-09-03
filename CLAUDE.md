@@ -23,7 +23,7 @@ arguments to list targets.
 # Serve locally with drafts enabled, open in Safari once ready
 make run-site
 
-# Create a new post from the archetype (content/posts/<slug>.md)
+# Create a new post from the archetype (content/posts/YYYY-MM-DD-<slug>.md)
 make new-post TITLE=my-first-post
 
 # Production build (outputs to ./public/)
@@ -45,6 +45,28 @@ so drafts stay unpublished on the live site.
 locally since drafts are rendered; the post stays out of the production
 build until `draft: true` is flipped to `false` in its frontmatter; deploying
 is a push to `main`.
+
+**Post filenames and URLs.** Posts are named `content/posts/YYYY-MM-DD-<slug>.md`
+(or the bundle directory `content/posts/YYYY-MM-DD-<slug>/`), matching the
+convention already used in `content/ideas/`. The date prefix is **filing only —
+it never reaches the URL**: each post carries an explicit `slug:` field, and
+that is what Hugo publishes at. `2025-04-23-ai-2027.md` serves `/posts/ai-2027/`.
+
+This split is deliberate and both halves are load-bearing:
+
+- **Renaming a file changes nothing about the URL** — it only changes disk
+  order. To change a URL, edit `slug:`.
+- **Do not try to make Hugo derive the URL from a dated filename.** Setting
+  `[frontmatter] date = [":filename", ...]` does strip the prefix, but only by
+  making the filename the authoritative date, which discards the time of day
+  from `date:`. Four dates on this site carry multiple posts (four on
+  2025-04-05 alone), and without times they fall back to alphabetical order —
+  verified to reorder 11 of the 14 posts. The `slug:` field avoids this
+  entirely. Do not re-litigate it.
+
+`make new-post TITLE=<slug>` handles the prefix for you: pass an undated slug
+and it creates `posts/$(date +%F)-<slug>.md`, with `archetypes/default.md`
+stripping the date back off into both `title:` and `slug:`.
 
 Post *ideas* arrive on their own schedule: a weekly Cowork job drops five
 researched topic prompts into `content/ideas/` every Monday morning, and
@@ -88,17 +110,17 @@ The site renders via the **Congo theme module** — there is no hand-built `base
 
 | File | Purpose |
 |------|---------|
-| `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post`, `clean`, `preflight`, `help` |
+| `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post` (prepends today's date to `TITLE`), `clean`, `preflight`, `help` |
 | `go.mod` / `go.sum` | Pin the Congo theme as a Hugo Module at the upstream release tag `v2.14.0` — see Theme Management below |
 | `LICENSE` | Proprietary, all-rights-reserved — not Apache 2.0. The written content is the asset here, not open-source code, so this repo deliberately departs from this org's usual public-repo licensing default |
 | `config/_default/` | **All site configuration.** Congo expects its config split across this directory rather than a single root `hugo.toml`; there is no root `hugo.toml` in this repo — see the file-by-file breakdown below |
 | `layouts/_partials/favicons.html` | Congo's supported icon override point. Generates the favicon / apple-touch-icon / android-chrome PNG derivatives from `assets/images/aerie-icon.webp` **and emits three `<link>` tags** (16x16, 32x32, apple-touch-icon) — defining this partial *replaces* Congo's default icon tags rather than adding to them, which is what keeps the hrefs from duplicating |
 | `static/favicon.ico` | A real multi-size ICO overriding Congo's blank placeholder at the same path — see Icon Overrides below |
 | `content/_index.md` | Homepage frontmatter (title only). The homepage body comes from Congo's `profile` home layout: the site title plus `params.author.headline` (the tagline), then the recent-articles list |
-| `archetypes/default.md` | Frontmatter template for `hugo new` (title, date, lastmod, description, tags, categories, draft) |
+| `archetypes/default.md` | Frontmatter template for `hugo new`. Strips the `YYYY-MM-DD-` prefix off the filename into both `title:` and `slug:`, so a dated filename yields an undated title and URL |
 | `layouts/robots.txt` | Congo's supported robots.txt override point (module ships its own template at the same relative path). Emits the site's AI-crawler policy — see Robots.txt / AI-Crawler Policy below. Requires `enableRobotsTXT = true` in `hugo.toml` or Hugo never renders it |
 | `scripts/migrate-wordpress.py` | **HISTORICAL — do not re-run.** The one-time WordPress→Hugo migration, completed 2026-07-18. It emits WordPress-era conventions (explicit `slug:` fields, flat `static/images/` paths, excerpt-derived descriptions) that the site has since abandoned; re-running it would reintroduce them and overwrite hand-written descriptions. Kept for the record only |
-| `content/posts/<slug>/` | **Page bundles.** Posts that carry images are directories: `index.md` plus the image files alongside it, referenced bundle-relatively as `{{< figure src="<file>" >}}`. Posts without images stay as flat `content/posts/<slug>.md`. Post/page images live in bundles, not `static/` — the only thing in `static/` is `favicon.ico` (see Icon Overrides below) |
+| `content/posts/YYYY-MM-DD-<slug>/` | **Page bundles.** Posts that carry images are directories: `index.md` plus the image files alongside it, referenced bundle-relatively as `{{< figure src="<file>" >}}`. Posts without images stay as flat `content/posts/YYYY-MM-DD-<slug>.md`. The date prefix is filing only — the URL comes from `slug:` (see Post filenames and URLs above). Post/page images live in bundles, not `static/` — the only thing in `static/` is `favicon.ico` (see Icon Overrides below) |
 | `BEATS.md` | The list of topics the weekly Cowork idea generator researches — one `## ` heading per beat, `(paused)` in a heading skips it, bullets under it are hints. This is the whole hand-editable configuration surface for that job; see Idea Pipeline below |
 | `content/ideas/` | The idea queue that job writes into — never published. `_index.md` sets `cascade: draft: true` over the whole section; see Idea Pipeline below |
 | `.github/dependabot.yml` | Weekly `gomod` + `github-actions` update checks. The `gomod` entry is what bumps the Congo theme pin (`go.mod`), since the theme is consumed as a Hugo Module; the `github-actions` entry bumps the SHA-pinned actions in `deploy.yml` — see Deployment below |
@@ -109,7 +131,7 @@ Congo reads its configuration from `config/_default/*.toml`, and **which file a 
 
 | File | Holds |
 |------|-------|
-| `config/_default/hugo.toml` | Core Hugo settings: `baseURL`, `defaultContentLanguage`, `[taxonomies]` (`tag`/`category` — the URLs depend on these), `[pagination]` `pagerSize = 20`, `[outputs] home = ["HTML", "RSS", "JSON"]` (the search index, see Search below), `[privacy] [privacy.youtube] privacyEnhanced = true` (makes the built-in `{{< youtube >}}` shortcode, used only by `content/posts/superman-sneak-peek.md`, emit `youtube-nocookie.com` instead of `www.youtube.com`), and the `[module]` block importing Congo. No explicit `mounts` — Congo's default mounts are used as-is (see Icon Overrides below for why) |
+| `config/_default/hugo.toml` | Core Hugo settings: `baseURL`, `defaultContentLanguage`, `[taxonomies]` (`tag`/`category` — the URLs depend on these), `[pagination]` `pagerSize = 20`, `[outputs] home = ["HTML", "RSS", "JSON"]` (the search index, see Search below), `[privacy] [privacy.youtube] privacyEnhanced = true` (makes the built-in `{{< youtube >}}` shortcode, used only by `content/posts/2025-04-05-superman-sneak-peek.md`, emit `youtube-nocookie.com` instead of `www.youtube.com`), and the `[module]` block importing Congo. No explicit `mounts` — Congo's default mounts are used as-is (see Icon Overrides below for why) |
 | `config/_default/languages.en.toml` | `title = "The Aerie"`, `locale`/`label`/`direction`, `params.description`, `params.mainSections`, `params.author.headline` (the tagline), and `params.author.links` (the profile block's social icons — Instagram, Flickr, GitHub, RSS, see Social Links below) |
 | `config/_default/params.toml` | Congo's theme parameters: appearance, `enableSearch`, `[header]`, `[footer]`, `[homepage]`, `[article]`, `[list]`, `[taxonomy]` |
 | `config/_default/menus.en.toml` | The main menu. In a `menus.<lang>.toml` file the menu name is the **top-level** key, so entries are `[[main]]`, not `[[menu.main]]` as they would be in `hugo.toml` |
@@ -268,12 +290,15 @@ Two independent mechanisms, and both are load-bearing enough to leave alone:
 
 ### Promoting an idea to a post
 
-Move the file to `content/posts/<slug>.md` (or a bundle directory if it will carry images),
-flip `draft` to `false`, drop the `beat:` key, and delete the `## Prompt` / `## Why now` /
-`## Angles` / `## Links` / `## Prior art` scaffolding. **The filename becomes the URL** (see
-URL scheme below), so rename it to the slug the post should actually live at rather than
-keeping the dated idea filename. Rewrite `description:` for the finished post — the
-generated one describes the *idea*, not the piece.
+Move the file to `content/posts/` (or a bundle directory if it will carry images). The idea's
+`YYYY-MM-DD-<slug>.md` name is already the right shape, but **re-date it to the post's
+publication date** — the generated name carries the date the *idea* was produced, which is
+rarely when the post ships.
+
+Then: add a `slug:` field (this is what sets the URL — the date prefix never reaches it, see
+*Post filenames and URLs* above), flip `draft` to `false`, drop the `beat:` key, and delete the
+`## Prompt` / `## Why now` / `## Angles` / `## Links` / `## Prior art` scaffolding. Rewrite
+`description:` for the finished post — the generated one describes the *idea*, not the piece.
 
 ## Content Migration
 
@@ -292,13 +317,26 @@ The site uses **Hugo's default permalinks**. The config carries no `[permalinks]
 
 The owner **deliberately abandoned WordPress URL parity on 2026-07-18** and accepted the breakage. These old WordPress URLs now 404: dated post permalinks (`/YYYY/MM/DD/<slug>/`), singular term paths (`/tag/<slug>/`, `/category/<slug>/`), `/who-am-i/`, date archives (`/YYYY/MM/`), and `/feed/`.
 
-**Post slugs derive from the filename**, not the title — posts carry no `slug:` frontmatter field, and none should be added. Because the slug comes from the filename, the old trailing-punctuation hazard no longer applies: a title ending in a period (e.g. the SB 63 post) cannot leak a trailing dot into its URL. **To change a post's URL, rename its file** (`content/posts/<slug>.md`, or the bundle directory `content/posts/<slug>/`).
+**Post filenames are `YYYY-MM-DD-<slug>.md`, and every post carries an explicit
+`slug:` field** — see *Post filenames and URLs* under Commands above. The date is a filing
+prefix only; `slug:` is what sets the URL, so `content/posts/2025-04-23-ai-2027.md` publishes
+at `/posts/ai-2027/`. **To change a post's URL, edit its `slug:`** — renaming the file changes
+only how it sorts on disk.
+
+This reverses an earlier rule that posts should carry no `slug:` field. That rule was written
+against `scripts/migrate-wordpress.py`, which emitted `slug:` values that merely restated the
+filename and were therefore pure redundancy. Under dated filenames the field does real work:
+it is the only thing keeping the date out of the URL. A `slug:` that restates the *undated*
+part of the filename is expected and correct now, not the redundancy the old rule warned about.
+The trailing-punctuation hazard the old rule also guarded against is still handled, since the
+slug is still authored rather than derived from the title: the SB 63 post's trailing period
+cannot leak into its URL.
 
 **Taxonomy names are authored in their proper display form** (`SVBC`, `ECRR2025`, `Door Lock`, `AI`, `UPS`, `Public Transit`), and Hugo urlizes them down to unchanged slugs (`svbc`, `ecrr2025`, `door-lock`, …). This is what lets `capitalizeListTitles` stay at its default: Hugo's title caser only uppercases each word's first rune and leaves the rest alone, so acronyms survive intact rather than becoming "Svbc". **Author new tags in display form** — a lowercase tag would render lowercase in headings.
 
 **Decisions made:**
-- **Images** live in **page bundles**: a post with images is a directory (`content/posts/<slug>/index.md`) with its images beside it, referenced bundle-relatively (`{{< figure src="<file>" >}}`). Two posts carry images (`cities-moving`, 3; `i-got-tired-of-changing-batteries`, 5). Post/page media does not use `static/`. Media pulled from WordPress was the ORIGINAL files, not the resized/`.avif` derivatives.
-- **Embeds:** one post (`superman-sneak-peek`) contained a YouTube iframe, converted to Hugo's built-in `{{< youtube >}}` shortcode. Figures use the built-in `{{< figure >}}` shortcode. Both avoid needing `markup.goldmark.renderer.unsafe`.
+- **Images** live in **page bundles**: a post with images is a directory (`content/posts/YYYY-MM-DD-<slug>/index.md`) with its images beside it, referenced bundle-relatively (`{{< figure src="<file>" >}}`). Two posts carry images (`2025-05-31-cities-moving`, 3; `2026-04-13-i-got-tired-of-changing-batteries`, 5). Post/page media does not use `static/`. Media pulled from WordPress was the ORIGINAL files, not the resized/`.avif` derivatives.
+- **Embeds:** one post (`2025-04-05-superman-sneak-peek`) contained a YouTube iframe, converted to Hugo's built-in `{{< youtube >}}` shortcode. Figures use the built-in `{{< figure >}}` shortcode. Both avoid needing `markup.goldmark.renderer.unsafe`.
 - **RSS** lands at Hugo's `/index.xml`, not WordPress's `/feed/` — that URL was not preserved. The owner has decided not to add a `/feed/` alias: existing subscribers at that URL will 404, accepted.
 - **Favicon** is sourced from WordPress's site-icon crop, `cropped-aerie_icon.webp` (512x512), not the uncropped 1024x1024 `aerie_icon.webp` upload, whose framing (more padding around the circle) differs. The 512 master is stored as `assets/images/aerie-icon.webp` and **remains the single source for every icon on the site** — see Icon Overrides above for how it drives every published icon path, including the committed `static/favicon.ico`.
 - **Date archives** (`/YYYY/MM/`) are NOT generated. Hugo has no built-in date-archive generation; `GroupByDate`/`GroupByPublishDate` group posts inside a template but don't emit pages at those URLs. Reproducing them would require a generated stub page per month with a `url:` frontmatter override, plus a new stub every future month — rejected as ongoing maintenance for URLs with negligible inbound links.

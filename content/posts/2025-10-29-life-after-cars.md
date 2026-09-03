@@ -6,5 +6,6 @@ description: "Notes on Life After Cars"
 tags: ["Cycling", "Driving", "Safety", "Transportation"]
 categories: ["Advocacy"]
 draft: false
+slug: "life-after-cars"
 ---
 After a long wait, my copy of [Life After Cars: Freeing Ourselves from the Tyranny of the Automobile](https://www.lifeaftercars.com/) arrived last week.  I tore through it, mostly in a frenzy of confirmation bias, but it is a good consolidation of research-backed findings of the damage caused by the rise of the automobile around the world.  I do recommend it, even though I had heard many of the same arguments in books and articles that they referenced.  I found it a well-organized and approachable text that everyone should read and understand, regardless if you’re anti-car or not.
