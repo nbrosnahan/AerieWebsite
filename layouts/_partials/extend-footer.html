@@ -1,0 +1,27 @@
+{{ if .IsHome }}
+  {{ $ts := now.UTC }}
+  <div class="mt-2 text-center text-xs text-neutral-500 dark:text-neutral-400">
+    Generated
+    <time id="build-time" datetime="{{ $ts.Format "2006-01-02T15:04:05Z" }}">
+      {{ $ts.Format "2006-01-02 15:04 UTC" }}
+    </time>
+  </div>
+  {{/* Rewrites the UTC stamp above into the viewer's own timezone; the UTC text
+       is the no-JS fallback, so this can only improve the rendering.
+       Component options (year/month/day/hour/minute), NOT dateStyle/timeStyle:
+       ECMA-402 throws a TypeError if timeZoneName is combined with either style
+       option, and the throw is silent -- the stamp would simply stay UTC. */}}
+  <script>
+    (function () {
+      var t = document.getElementById("build-time");
+      t.textContent = new Date(t.dateTime).toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+      });
+    })();
+  </script>
+{{ end }}

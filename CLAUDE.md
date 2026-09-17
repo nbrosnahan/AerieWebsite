@@ -134,6 +134,7 @@ locally is configuration and the one supported theme-extension point:
 | `static/favicon.ico` | A real multi-size ICO overriding Congo's blank placeholder at the same path — see Icon Overrides below |
 | `content/_index.md` | Homepage frontmatter (title only). The homepage body comes from Congo's `profile` home layout: the site title plus `params.author.headline` (the tagline), then the recent-articles list |
 | `archetypes/default.md` | Frontmatter template for `hugo new`. Strips the `YYYY-MM-DD-` prefix off the filename into both `title:` and `slug:`, so a dated filename yields an undated title and URL |
+| `layouts/_partials/extend-footer.html` | Congo's supported footer extension point (called from the theme's `footer.html` via `templates.Exists`, so no config change enables it). Emits the build timestamp on the homepage only — `.IsHome`-guarded, because the hook fires inside `<footer>` on every page. See Build Timestamp below |
 | `layouts/robots.txt` | Congo's supported robots.txt override point (module ships its own template at the same relative path). Emits the site's AI-crawler policy — see Robots.txt / AI-Crawler Policy below. Requires `enableRobotsTXT = true` in `hugo.toml` or Hugo never renders it |
 | `scripts/migrate-wordpress.py` | **HISTORICAL — do not re-run.** The one-time WordPress→Hugo migration, completed 2026-07-18. It emits WordPress-era conventions (explicit `slug:` fields, flat `static/images/` paths, excerpt-derived descriptions) that the site has since abandoned; re-running it would reintroduce them and overwrite hand-written descriptions. Kept for the record only |
 | `content/posts/YYYY/YYYY-MM-DD-<slug>/` | **Page bundles.** Posts that carry images are directories: `index.md` plus the image files alongside it, referenced bundle-relatively as `{{< figure src="<file>" >}}`. Posts without images stay as flat `content/posts/YYYY/YYYY-MM-DD-<slug>.md`. The year directory and the date prefix are both filing only — the URL comes from `slug:` (see Post filenames and URLs above). Post/page images live in bundles, not `static/` — the only thing in `static/` is `favicon.ico` (see Icon Overrides below) |
@@ -224,6 +225,29 @@ search modal (`header/basic.html` auto-adds a search button when no menu entry d
 (non-map) keys like `[outputs]` don't merge from the theme module into a site's own `hugo.toml` once that file exists,
 so the block must be restated here or `public/index.json` (the search index the modal fetches client-side) never gets
 built.
+
+### Build Timestamp
+
+The homepage footer carries a `Generated <timestamp>` line, emitted by `layouts/_partials/extend-footer.html`. Congo
+calls that partial from its own `footer.html` via `templates.Exists "_partials/extend-footer.html"`, so the file's
+presence is the whole wiring — there is no parameter to set. The hook fires inside `<footer>` on *every* page, so the
+`.IsHome` guard in the partial is what keeps the stamp to the homepage.
+
+`now` is **build** time, not content time, so the line reads as "last deployed" — it only advances when a workflow run
+publishes. `.Site.LastChange` is the key to swap in if last-content-change is ever wanted instead.
+
+The value is rendered once, in UTC, and converted client-side to the viewer's own timezone:
+
+- **UTC goes in the `datetime` attribute** as RFC 3339 (`2006-01-02T15:04:05Z`), which is what the script parses.
+  Parsing the human-readable text instead would be unreliable across browsers. The visible UTC text is the no-JS
+  fallback, so a viewer with JavaScript off, or a script that throws, still sees a correct timestamp.
+- **The `Intl` options are component-level (`year`/`month`/`day`/`hour`/`minute`), deliberately not `dateStyle` /
+  `timeStyle`.** ECMA-402 throws `TypeError: Invalid option : option` when `timeZoneName` is combined with either style
+  option, and that throw is **silent in the page** — the stamp simply stays UTC and the build stays green, so nothing
+  catches it. Do not "simplify" these back to `dateStyle`/`timeStyle` while `timeZoneName` is present.
+- **`hugo --minify` rewrites `undefined` as `0[0]`** in the inline script. That is valid JavaScript and evaluates to
+  `undefined` (verified under node against the minified output); it is not corruption, and the built file is not the
+  place to fix it.
 
 ### Robots.txt / AI-Crawler Policy
 
