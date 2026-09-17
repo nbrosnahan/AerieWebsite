@@ -20,7 +20,8 @@ Also, it'll cost $10M to remove the park and an additional $2M to maintain the r
 
 Let's be clear.  Cars never make parks great, and they absolutely do not make streets safe.
 
-I love walking and riding in Sunset Dunes Park.  The creation of the park hasn't caused the traffic apocalypse that everyone feared.
+I love walking and riding in Sunset Dunes Park.  The creation of the park hasn't caused the traffic
+apocalypse that everyone feared.
 This effort to un-ring the park bell is silly.  Once again.
 
 Vote No on G.  The park is here to stay and your car can go somewhere else please.
