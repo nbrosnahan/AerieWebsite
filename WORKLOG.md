@@ -689,3 +689,37 @@ published URL.
 - **Filenames keep their full `YYYY-MM-DD-` prefix inside the year directory** rather than dropping the year now that
   it's redundant with the containing directory — changing filenames again would be unrelated churn on top of this move,
   and the prefix still sorts correctly within each year.
+
+## 2026-09-17 — Bump CI Hugo to 0.166.0, close the local/CI version gap again
+
+**Goal:** `.github/workflows/deploy.yml` pinned `HUGO_VERSION` at 0.165.0 while this machine had moved to Homebrew's
+0.166.0, so `make preflight` was no longer running the build that produces the published site — the exact drift the
+*Hugo version* note in `CLAUDE.md` warns about. Noticed while shipping the homepage build timestamp earlier today.
+
+**Done:**
+
+- `.github/workflows/deploy.yml`: `HUGO_VERSION` 0.165.0 → 0.166.0 (released 2026-09-09, the current upstream release).
+- `CLAUDE.md`: both version strings in the *Hugo version* paragraph updated to 0.166.0.
+
+**Verification:**
+
+- Confirmed **before** bumping that v0.166.0 publishes both assets the install step interpolates —
+  `hugo_extended_0.166.0_linux-amd64.deb` and `hugo_0.166.0_checksums.txt` — so the asset-naming precondition holds and
+  the checksum step's `grep` will match. Ran that exact `grep` against the downloaded checksums file: it matches, exit 0.
+- Confirmed v0.166.0 is not a prerelease, and is the same version `gh`/the API reports as `latest`.
+- `grep -rn '0\.165' .github CLAUDE.md` returns nothing. The `0.165` references left in this file are historical entries
+  about the previous bump and are deliberately untouched.
+- `make preflight` passes (87 pages, 0 markdownlint issues). **This proves nothing new about the bump**, exactly as it
+  didn't for the 0.165.0 bump: the local Hugo was already 0.166.0, so the gate was green on that version beforehand.
+  **The PR build is the first genuine test of 0.166.0 in CI.**
+
+**Decisions:**
+
+- **This branch carries a cherry-pick of the MD013 reflow** (`7b325fd` on `feature/homepage-build-timestamp`, PR #24,
+  still open). The bump branch was cut from `main`, which still has the 132-column line, so `make preflight` — and
+  therefore the pre-push hook — failed on it for a reason unrelated to the bump. Stacking the fix in was chosen over
+  merging #24 early or pushing with `SKIP_PREFLIGHT=1`, which would have put a knowingly-red gate on the remote. The
+  duplicate commit resolves itself when #24 lands, since the content is identical.
+- **Still nothing watches this pin.** Dependabot's `github-actions` ecosystem tracks `uses:` refs, not env vars, so the
+  next drift will again only be caught by eye — as this one was, twice now. Not fixed here, and switching to a setup
+  action would not fix it either (Dependabot would bump the action, not the version input passed to it).

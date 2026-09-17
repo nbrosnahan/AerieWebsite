@@ -100,8 +100,8 @@ bare URLs, no markdown links, and no editorializing or verdict (state the topic,
 that are primarily a link plus commentary, describe *what's being linked* in words; the link itself belongs in the post
 body, where it's clickable and has context.
 
-**Hugo version: 0.165.0 extended.** CI pins it as `HUGO_VERSION` in `.github/workflows/deploy.yml`, installed as a
-checksum-verified `.deb`; this machine runs Homebrew's **0.165.0+extended+withdeploy**, so `make preflight` and the
+**Hugo version: 0.166.0 extended.** CI pins it as `HUGO_VERSION` in `.github/workflows/deploy.yml`, installed as a
+checksum-verified `.deb`; this machine runs Homebrew's **0.166.0+extended+withdeploy**, so `make preflight` and the
 deploy exercise the same Hugo. Keep them matched when bumping either — the local gate is only meaningful as a pre-merge
 check while it runs the same build that produces the published site. (The `withdeploy` suffix Homebrew adds is not a
 discrepancy worth chasing: it only adds the `hugo deploy` command for S3/GCS targets, which this site never uses — it
