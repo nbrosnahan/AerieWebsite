@@ -80,6 +80,7 @@ check-post-names: ## Verify every post lives at content/posts/<YYYY>/YYYY-MM-DD-
 	bad_top=$$(find content/posts -mindepth 1 -maxdepth 1 \
 		! -name '_index.md' \
 		! -name '[0-9][0-9][0-9][0-9]' \
+		! -name '.*' \
 		-print); \
 	if [ -n "$$bad_top" ]; then \
 		echo "ERROR: content/posts/ may only contain _index.md and YYYY year directories:" >&2; \
@@ -93,7 +94,7 @@ check-post-names: ## Verify every post lives at content/posts/<YYYY>/YYYY-MM-DD-
 			echo "ERROR: $$yeardir/_index.md is forbidden -- an _index.md inside a year directory promotes it to a real Hugo section, generating /posts/$$year/ archive pages and making Congo's list.html render year links instead of posts." >&2; \
 			status=1; \
 		fi; \
-		for entry in $$(find "$$yeardir" -mindepth 1 -maxdepth 1 ! -name '_index.md' -print); do \
+		for entry in $$(find "$$yeardir" -mindepth 1 -maxdepth 1 ! -name '_index.md' ! -name '.*' -print); do \
 			name=$$(basename "$$entry"); \
 			case "$$name" in \
 				[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*) \
@@ -119,10 +120,10 @@ clean: ## Remove public/ and resources/_gen
 	rm -rf public resources/_gen
 
 lint-markdown: ## Lint every Markdown file — zero warnings required
-	markdownlint-cli2 --config $(MARKDOWNLINT_CONFIG) 'content/**/*.md' '!content/ideas/_previous/**'
+	markdownlint-cli2 --config $(MARKDOWNLINT_CONFIG) 'content/**/*.md' '!content/ideas/_previous/**' '*.md'
 
 lint-markdown-fix: ## Auto-fix fixable Markdown issues (rewrites files in place)
-	markdownlint-cli2 --fix --config $(MARKDOWNLINT_CONFIG) 'content/**/*.md' '!content/ideas/_previous/**'
+	markdownlint-cli2 --fix --config $(MARKDOWNLINT_CONFIG) 'content/**/*.md' '!content/ideas/_previous/**' '*.md'
 
 # The steps are chained with && rather than ;. With ; a failing step only
 # prints its error and preflight carries on, exiting 0 on the strength of
