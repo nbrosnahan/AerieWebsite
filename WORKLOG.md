@@ -777,3 +777,55 @@ rather than the build machine's.
 - **Still nothing watches this pin.** Dependabot's `github-actions` ecosystem tracks `uses:` refs, not env vars, so the
   next drift will again only be caught by eye — as this one was, twice now. Not fixed here, and switching to a setup
   action would not fix it either (Dependabot would bump the action, not the version input passed to it).
+
+## 2026-09-17 — Close two preflight coverage gaps: dotfiles and root-level Markdown
+
+**Goal:** Two gaps in `make preflight` had already caused (or nearly caused) real problems. `check-post-names` errors
+on any dotfile Finder drops into `content/posts/` or a year directory — a stray `.DS_Store` falls through to the
+catch-all arm and fails the guard, which had already blocked a push once. This is the durable fix the build-timestamp
+entry above deferred. Separately, `lint-markdown`'s globs only cover `content/**/*.md`, so `CLAUDE.md`, `WORKLOG.md`,
+`README.md`, and `BEATS.md` sit outside the gate entirely — exactly how the 244-column `README.md` line landed
+unnoticed, and the gap that same entry called out. Fixed both, plus one unrelated pinned-action bump noticed along the
+way.
+
+**Done:**
+
+- `Makefile`, `check-post-names`: added `! -name '.*'` to both `find` invocations (the top-level scan of
+  `content/posts` and the inner scan of each year directory), so dotfiles are silently skipped instead of failing the
+  guard. `_index.md` handling and the bad-name catch-all are otherwise unchanged.
+- `Makefile`, `lint-markdown` and `lint-markdown-fix`: added a `'*.md'` glob alongside the existing
+  `'content/**/*.md' '!content/ideas/_previous/**'` pair, bringing root-level Markdown into the gate. `'*.md'` is
+  non-recursive, so it does not pick up `archetypes/default.md` (a Go template, not a document — it reads as ATX
+  headings to markdownlint and would be a false positive if ever linted).
+- `BEATS.md`: reworded the MD038 violation — `` `## ` `` (trailing space inside the code span) became "level-2
+  (`##`) heading", preserving the meaning that a level-2 ATX heading marks a beat, which is what the weekly Cowork job
+  actually parses.
+- `README.md`: reflowed the 244-column intro paragraph to two lines, both ≤120 columns. Wording unchanged.
+- `.github/workflows/deploy.yml`: bumped the pinned `actions/deploy-pages` SHA from `cd2ce8f…` to `368f825…` (still
+  tagged `v5` in the trailing comment). This is the exact SHA from the repo's own open Dependabot PR #23 (5.0.0 →
+  5.0.1); applying it here supersedes that PR.
+- `CLAUDE.md`: the `Makefile` architecture-table row now names `lint-markdown` / `lint-markdown-fix` and notes their
+  glob covers root-level `*.md`; the `check-post-names` description now notes the dotfile exemption.
+
+**Verification:**
+
+- `make lint-markdown`: `Linting: 25 files` / `Summary: 0 issues in 0 files` (21 content files + 4 root files:
+  `CLAUDE.md`, `WORKLOG.md`, `README.md`, `BEATS.md`).
+- Created `content/posts/2026/.DS_Store`, ran `make check-post-names`: `Post filenames OK.`, exit 0. Deleted the file.
+- Created `content/posts/2026/badname.md`, ran `make check-post-names`: `ERROR: content/posts/2026/badname.md does
+  not match YYYY-MM-DD-<slug>`, exit 2 — the catch-all still fires on a genuinely bad name. Deleted the file.
+- `make preflight` passes end to end: `check-post-names` OK, `hugo --gc --minify` builds 87 pages, `lint-markdown`
+  reports 0 issues across 25 files.
+- `git status` after both regression tests confirmed no leftover test files.
+
+**Decisions:**
+
+- **`'*.md'` over the house-standard `'**/*.md'`.** The recursive form was the obvious candidate, but it also picks up
+  `archetypes/default.md`, which reports 17 errors that are all false: its Go template comment sits above the `---`, so
+  markdownlint never detects the frontmatter and reads the commented-out `# url: ""` / `# aliases: []` lines as ATX
+  headings. That is a Hugo template, not a document. The non-recursive `'*.md'` closes exactly the gap that mattered —
+  the four root-level documents — without needing a new exclusion to suppress a false positive.
+- **The `BEATS.md` rewording is the one change here with an external consumer.** That file is live input to the weekly
+  Cowork idea generator, which parses its `##` headings; only the surrounding prose changed, and the sentence still
+  states that a level-2 heading marks a beat. A narrow `<!-- markdownlint-disable-next-line MD038 -->` was the
+  alternative if the literal `` `## ` `` span had to be preserved verbatim.

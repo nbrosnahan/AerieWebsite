@@ -89,7 +89,8 @@ violation:
 
 The check covers page-bundle directories as well as flat files, exempts `_index.md` at the top level of
 `content/posts/`, and — separately — forbids `_index.md` inside any year directory (see the durable warning under *URL
-scheme* below).
+scheme* below). It also exempts dotfiles at both levels — a Finder-dropped `content/posts/2026/.DS_Store` would
+otherwise fall through to the catch-all arm and fail `preflight`.
 
 Post *ideas* arrive on their own schedule: a weekly Cowork job drops five researched topic prompts into `content/ideas/`
 every Monday morning, and promoting one is a different starting point than `make new-post` — see Idea Pipeline below.
@@ -126,7 +127,7 @@ locally is configuration and the one supported theme-extension point:
 
 | File | Purpose |
 | ------ | --------- |
-| `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post` (files `TITLE` under today's year directory with today's date prefix), `check-post-names` (validates the `content/posts/YYYY/YYYY-MM-DD-<slug>` layout), `clean`, `preflight`, `help` |
+| `Makefile` | Primary task interface: `run-site`, `build-site`, `new-post` (files `TITLE` under today's year directory with today's date prefix), `check-post-names` (validates the `content/posts/YYYY/YYYY-MM-DD-<slug>` layout, dotfiles exempt), `lint-markdown` / `lint-markdown-fix` (content Markdown plus root-level `*.md`), `clean`, `preflight`, `help` |
 | `go.mod` / `go.sum` | Pin the Congo theme as a Hugo Module at the upstream release tag `v2.14.0` — see Theme Management below |
 | `LICENSE` | Proprietary, all-rights-reserved — not Apache 2.0. The written content is the asset here, not open-source code, so this repo deliberately departs from this org's usual public-repo licensing default |
 | `config/_default/` | **All site configuration.** Congo expects its config split across this directory rather than a single root `hugo.toml`; there is no root `hugo.toml` in this repo — see the file-by-file breakdown below |

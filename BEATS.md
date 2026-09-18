@@ -2,7 +2,7 @@
 
 Topics the weekly idea generator searches against. Edit freely — add, remove,
 reorder, or scribble notes under a beat. The generator reads this file at the
-start of every run and treats each `## ` heading as one beat to research.
+start of every run and treats each level-2 (`##`) heading as one beat to research.
 
 Bullet points under a beat are hints: specific orgs, projects, corridors,
 people, or angles worth watching. They are not required.
