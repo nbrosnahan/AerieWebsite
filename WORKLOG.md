@@ -690,6 +690,60 @@ published URL.
   it's redundant with the containing directory — changing filenames again would be unrelated churn on top of this move,
   and the prefix still sorts correctly within each year.
 
+## 2026-09-17 — Homepage build timestamp, converted to the viewer's timezone in the browser
+
+**Goal:** Show when the published site was last generated, at the bottom of the homepage, in the reader's own timezone
+rather than the build machine's.
+
+**Done:**
+
+- Added `layouts/_partials/extend-footer.html` — Congo's supported footer extension point, which the theme calls via
+  `templates.Exists "_partials/extend-footer.html"`, so the file's presence is the entire wiring and no config changed.
+- The stamp renders once in UTC: RFC 3339 in a `<time datetime>` attribute for the script to parse, with human-readable
+  UTC as the element's text. Six lines of inline JS rewrite that text via `toLocaleString`, so the displayed value is in
+  the viewer's locale and timezone, and the UTC text stands as the no-JS fallback.
+- Guarded with `.IsHome`: the hook fires inside `<footer>` on every page, and this is wanted on the homepage only.
+- Documented it in `CLAUDE.md` — an architecture-table row plus a new *Build Timestamp* section carrying the two traps
+  below.
+
+**Fixed along the way — two pre-existing failures that blocked `preflight`, neither caused by this change:**
+
+- `content/posts/2026/.DS_Store` (Finder metadata, dated Sep 4, gitignored but present on disk) failed
+  `check-post-names`, which exempts no dotfiles. Removed the file — a working-tree deletion, so it leaves no trace in
+  this commit. **The guard will reject it again the next time Finder touches that directory** — exempting dotfiles in
+  `check-post-names` is the durable fix and is deliberately left undone here rather than folded into an unrelated PR.
+- `content/posts/2026/2026-09-03-prop-g-sunset-dunes.md:23` was 132 columns, failing MD013; it was committed in
+  `c21391f` without `preflight` having run. It was reflowed on this branch first, then cherry-picked onto the Hugo bump
+  branch to unblock *that* branch's pre-push gate, and #25's squash-merge is what landed it on `main`. **The reflow
+  therefore ships in the entry below, not here** — this branch was replayed onto the merged `main` with its own now
+  redundant reflow commit dropped.
+
+**Verification:**
+
+- `make preflight` passes: `check-post-names` OK, `hugo --gc --minify` builds 87 pages, `markdownlint-cli2` reports 0
+  issues across 21 content files. `CLAUDE.md` and this file were linted separately — the `lint-markdown` target's
+  globs are `content/**/*.md`, so root-level Markdown is outside the gate.
+- The rendered homepage carries `<time id=build-time datetime=2026-09-17T20:24:09Z>2026-09-17 20:24 UTC</time>`;
+  `public/posts/ai-2027/index.html` does not contain `build-time`, confirming the `.IsHome` guard.
+- The **minified** `toLocaleString` call was extracted from `public/index.html` and run under node with
+  `TZ=America/Los_Angeles` against `2026-09-17T20:22:25Z`: prints `Sep 17, 2026, 1:22 PM PDT`, no throw.
+
+**Decisions:**
+
+- **`timeZoneName` cannot be combined with `dateStyle`/`timeStyle`** — ECMA-402 throws
+  `TypeError: Invalid option : option` on that pair, so the options are component-level (`year`/`month`/`day`/`hour`/
+  `minute`). The first version of this partial used the style form and threw on every page load; nothing caught it,
+  because the failure is silent by construction — the script dies, the UTC fallback stays on screen, and the build is
+  green. That is exactly why the durable warning is in `CLAUDE.md` and not only here.
+- **`hugo --minify` rewrites `undefined` as `0[0]`** in the inline script. Valid JavaScript, evaluates to `undefined`,
+  verified under node against the minified output — noted because it looks like corruption on first read.
+- **The timestamp is build time, not content time.** It advances only when a deploy runs, so it means "last deployed".
+  `.Site.LastChange` is the one-token swap if last-content-change is ever wanted instead.
+
+**Noticed here, fixed in the next entry:** this machine had moved to Hugo **0.166.0** while
+`.github/workflows/deploy.yml` still pinned `HUGO_VERSION` at **0.165.0** — the drift the *Hugo version* note in
+`CLAUDE.md` warns about, since nothing watches that pin. Bumped the same day, see the entry below.
+
 ## 2026-09-17 — Bump CI Hugo to 0.166.0, close the local/CI version gap again
 
 **Goal:** `.github/workflows/deploy.yml` pinned `HUGO_VERSION` at 0.165.0 while this machine had moved to Homebrew's
