@@ -19,7 +19,7 @@ WordPress REST API (https://brosnahan.org/wp-json/wp/v2/) and writes:
   - content/about.md          (body only; existing frontmatter preserved)
   - static/images/<basename>  (ORIGINAL media files, not resized derivatives)
 
-See CLAUDE.md for the URL-parity constraints this migration must preserve.
+See AGENTS.md for the URL-parity constraints this migration must preserve.
 
 Usage:
     python3 scripts/migrate-wordpress.py
@@ -60,7 +60,7 @@ EXCLUDED_POST_SLUGS = {"__trashed"}
 # migrated post's `categories:` frontmatter). Empty by default: the
 # `uncategorized` category (WordPress's default placeholder, id 1) was
 # temporarily RESTORED to preserve /category/uncategorized/ URL parity with
-# the live WordPress site -- see CLAUDE.md "Decisions made". To re-drop it
+# the live WordPress site -- see AGENTS.md "Decisions made". To re-drop it
 # (accepting that /category/uncategorized/ will 404), set this back to
 # `{"uncategorized"}` and remove `"Uncategorized"` from the two affected
 # posts' `categories:` lists (content/posts/hello-sf.md,
