@@ -46,7 +46,7 @@ enableRobotsTXT = true
     privacyEnhanced = true
 
 # Posts are filed on disk under content/posts/<year>/ purely for on-disk
-# organization (see CLAUDE.md's "Post filenames and URLs" section) -- the
+# organization (see AGENTS.md's "Post filenames and URLs" section) -- the
 # year directory carries no _index.md, so it is not a Hugo section and
 # .Section/.Type stay "posts". Without this block Hugo would still publish
 # each post one path segment deeper than before, at /posts/<year>/<slug>/,
